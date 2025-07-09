@@ -412,6 +412,7 @@
     </style>
   </head>
   <body>
+    <img src="/Thumbnail.jpg" alt="thumbnail" style="display:none;" />
     <div class="cursor"></div>
     <div class="noise"></div>
     
@@ -719,6 +720,21 @@
             @media (max-width: 900px) {
                 .contact-container { flex-direction: column; gap: 1.5rem; }
                 .contact-info, #contactForm { max-width: 100% !important; }
+            }
+            @media (max-width: 700px) {
+                /* 포트폴리오 썸네일 그리드 2열로 */
+                .portfolio-grid {
+                    display: grid !important;
+                    grid-template-columns: 1fr 1fr !important;
+                    gap: 1.2rem !important;
+                }
+                .video-item {
+                    max-width: 100% !important;
+                }
+                .section-title { font-size: 1.5em !important; }
+                .hero-title { font-size: 2.2em !important; }
+                .hero-subtitle { font-size: 1.1em !important; }
+                .contact-container { gap: 1.2rem !important; }
             }
             #contactForm input, #contactForm select, #contactForm textarea {
                 font-size: 1em;
