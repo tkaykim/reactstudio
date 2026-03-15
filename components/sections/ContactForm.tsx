@@ -16,6 +16,7 @@ const serviceOptions = [
   '숏폼',
   '홍보영상',
   '브랜드필름',
+  '기타',
 ];
 
 interface FormData {
