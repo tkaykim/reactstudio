@@ -30,7 +30,7 @@ export default function ContactPage() {
               </div>
               <div className="flex items-center gap-3 text-white/50">
                 <Phone size={18} className="text-brand flex-shrink-0" />
-                <span>010-0000-0000</span>
+                <span>010-2087-0621</span>
               </div>
               <div className="flex items-center gap-3 text-white/50">
                 <Instagram size={18} className="text-brand flex-shrink-0" />
