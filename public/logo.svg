@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <rect x="0" y="8" width="24" height="24" rx="4" fill="#FF4D00"/>
+  <polygon points="8,12 8,28 20,20" fill="white"/>
+  <text x="32" y="28" font-family="sans-serif" font-weight="700" font-size="20" fill="white">REACT</text>
+  <text x="108" y="28" font-family="sans-serif" font-weight="300" font-size="20" fill="#FF4D00">STUDIO</text>
+</svg>
