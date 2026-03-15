@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@reactstudio.kr"
+              placeholder="admin@example.com"
               required
               className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded text-white placeholder:text-white/20 focus:outline-none focus:border-brand transition-colors"
             />

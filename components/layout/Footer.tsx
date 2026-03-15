@@ -20,7 +20,7 @@ export default function Footer() {
               <a href="#" className="text-white/30 hover:text-brand transition-colors" aria-label="YouTube">
                 <Youtube size={18} />
               </a>
-              <a href="mailto:contact@reactstudio.kr" className="text-white/30 hover:text-brand transition-colors" aria-label="Email">
+              <a href="mailto:react.studio.kr@gmail.com" className="text-white/30 hover:text-brand transition-colors" aria-label="Email">
                 <Mail size={18} />
               </a>
             </div>
@@ -54,7 +54,7 @@ export default function Footer() {
               Contact
             </h3>
             <ul className="space-y-3 text-white/30 text-sm">
-              <li>contact@reactstudio.kr</li>
+              <li>react.studio.kr@gmail.com</li>
             </ul>
           </div>
         </div>

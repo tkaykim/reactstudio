@@ -239,7 +239,7 @@ export default function ContractSignPage() {
         )}
 
         <div className="mt-12 pt-6 border-t border-white/5 text-center">
-          <p className="text-white/20 text-xs">React Studio | contact@reactstudio.kr</p>
+          <p className="text-white/20 text-xs">React Studio | react.studio.kr@gmail.com</p>
         </div>
       </main>
     </div>

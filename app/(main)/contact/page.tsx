@@ -26,7 +26,7 @@ export default function ContactPage() {
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-3 text-white/50">
                 <Mail size={18} className="text-brand flex-shrink-0" />
-                <span>contact@reactstudio.kr</span>
+                <span>react.studio.kr@gmail.com</span>
               </div>
               <div className="flex items-center gap-3 text-white/50">
                 <Phone size={18} className="text-brand flex-shrink-0" />

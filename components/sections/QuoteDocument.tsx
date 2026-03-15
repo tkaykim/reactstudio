@@ -266,7 +266,7 @@ export default function QuoteDocument({ quote, clientName, clientCompany, projec
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>React Studio | contact@reactstudio.kr</Text>
+          <Text style={styles.footerText}>React Studio | react.studio.kr@gmail.com</Text>
           <Text style={styles.footerText}>{docNumber}</Text>
         </View>
       </Page>
