@@ -105,6 +105,44 @@ export const CONTRACT_TYPES = [
   { value: 'outsource', label: '외주' },
 ];
 
+export interface PenaltyRate {
+  label: string;
+  rate: number;
+}
+
+export interface Agreement {
+  id: number;
+  bu_code: BuCode;
+  inquiry_id: number | null;
+  quote_id: number | null;
+  title: string;
+  client_company: string;
+  client_address: string;
+  client_representative: string;
+  client_email: string;
+  client_phone: string;
+  task_description: string;
+  deliverables: string;
+  shooting_date: string | null;
+  delivery_date: string | null;
+  release_date: string | null;
+  total_amount: number;
+  vat_type: 'exclusive' | 'inclusive';
+  deposit_rate: number;
+  deposit_amount: number;
+  balance_rate: number;
+  balance_amount: number;
+  deposit_condition: string;
+  balance_condition: string;
+  free_revision_count: number;
+  penalty_rates: PenaltyRate[];
+  contract_date: string | null;
+  status: 'draft' | 'sent';
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SiteSetting {
   key: string;
   value: string;

@@ -208,6 +208,12 @@ export default function InquiriesClient({ initialInquiries }: { initialInquiries
                 <FileSignature size={14} /> 상세 견적서
               </Link>
             </div>
+            <Link
+              href={`/admin/agreements/new?inquiry_id=${selected.id}`}
+              className="flex items-center justify-center gap-2 w-full py-2.5 mt-1 bg-white/5 text-white/60 text-sm rounded hover:bg-white/10 hover:text-white transition-colors"
+            >
+              <FileSignature size={14} /> 계약서 작성
+            </Link>
 
             {selected.client_token && (
               <button
