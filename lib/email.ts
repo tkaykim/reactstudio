@@ -107,7 +107,7 @@ export async function sendQuoteEmail(
       <!-- Header -->
       <div style="border-bottom:3px solid #FF4D00;padding-bottom:16px;margin-bottom:24px">
         <table width="100%"><tr>
-          <td><span style="font-size:24px;font-weight:bold;color:#FF4D00">REACT STUDIO</span><br><span style="font-size:12px;color:#888">영상제작 프로덕션</span></td>
+          <td><span style="font-size:24px;font-weight:bold;color:#FF4D00">REACT STUDIO</span><br><span style="font-size:12px;color:#888">(주) 그리고 엔터테인먼트 영상프로덕션</span></td>
           <td style="text-align:right"><span style="font-size:18px;font-weight:bold">견 적 서</span><br><span style="font-size:11px;color:#888">No. ${docNumber}</span></td>
         </tr></table>
       </div>
@@ -188,7 +188,8 @@ export async function sendQuoteEmail(
 
       <!-- Footer -->
       <div style="border-top:1px solid #eee;padding-top:12px;margin-top:24px">
-        <span style="font-size:11px;color:#aaa">React Studio | react.studio.kr@gmail.com</span>
+        <span style="font-size:11px;color:#aaa">React Studio | (주) 그리고 엔터테인먼트 영상프로덕션 브랜드</span><br>
+        <span style="font-size:11px;color:#aaa">react.studio.kr@gmail.com</span>
       </div>
     </div>
   ` : `
@@ -197,6 +198,7 @@ export async function sendQuoteEmail(
     <p>문의사항이 있으시면 언제든지 연락주세요.</p>
     <br>
     <p><b>React Studio</b></p>
+    <p style="font-size:12px;color:#888">(주) 그리고 엔터테인먼트 | 영상프로덕션 브랜드</p>
   `;
 
   await transporter.sendMail({

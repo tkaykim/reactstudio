@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
           <div style="max-width:600px;margin:0 auto;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111">
             <div style="border-bottom:3px solid #FF4D00;padding-bottom:16px;margin-bottom:24px">
               <table width="100%"><tr>
-                <td><span style="font-size:24px;font-weight:bold;color:#FF4D00">REACT STUDIO</span><br><span style="font-size:12px;color:#888">영상제작 프로덕션</span></td>
+                <td><span style="font-size:24px;font-weight:bold;color:#FF4D00">REACT STUDIO</span><br><span style="font-size:12px;color:#888">(주) 그리고 엔터테인먼트 영상프로덕션</span></td>
                 <td style="text-align:right"><span style="font-size:18px;font-weight:bold">견 적 서</span><br><span style="font-size:11px;color:#888">No. ${docNumber}</span></td>
               </tr></table>
             </div>
@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
 
             <div style="border-top:1px solid #eee;padding-top:16px;margin-top:28px">
               <p style="font-size:13px;font-weight:bold;color:#FF4D00;margin:0 0 4px">React Studio</p>
+              <p style="font-size:11px;color:#999;margin:0 0 4px">(주) 그리고 엔터테인먼트 | 영상프로덕션 브랜드</p>
               <p style="font-size:12px;color:#888;margin:0">react.studio.kr@gmail.com</p>
             </div>
           </div>
