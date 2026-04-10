@@ -188,7 +188,8 @@ export async function sendQuoteEmail(
 
       <!-- Footer -->
       <div style="border-top:1px solid #eee;padding-top:12px;margin-top:24px">
-        <span style="font-size:11px;color:#aaa">React Studio | (주) 그리고 엔터테인먼트 영상프로덕션 브랜드</span><br>
+        <span style="font-size:11px;color:#aaa">React Studio | (주) 그리고 엔터테인먼트 영상프로덕션</span><br>
+        <span style="font-size:10px;color:#bbb">사업자등록번호 116-81-96848 | 서울특별시 마포구 성지3길 55, 3층 | 대표 김현준</span><br>
         <span style="font-size:11px;color:#aaa">react.studio.kr@gmail.com</span>
       </div>
     </div>

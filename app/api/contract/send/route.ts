@@ -80,7 +80,8 @@ export async function POST(req: NextRequest) {
 
             <div style="border-top:1px solid #eee;padding-top:16px;margin-top:28px">
               <p style="font-size:13px;font-weight:bold;color:#FF4D00;margin:0 0 4px">React Studio</p>
-              <p style="font-size:11px;color:#999;margin:0 0 4px">(주) 그리고 엔터테인먼트 | 영상프로덕션 브랜드</p>
+              <p style="font-size:11px;color:#999;margin:0 0 2px">(주) 그리고 엔터테인먼트 영상프로덕션</p>
+              <p style="font-size:10px;color:#bbb;margin:0 0 4px">사업자등록번호 116-81-96848 | 서울특별시 마포구 성지3길 55, 3층 | 대표 김현준</p>
               <p style="font-size:12px;color:#888;margin:0">react.studio.kr@gmail.com</p>
             </div>
           </div>

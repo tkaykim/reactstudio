@@ -87,11 +87,23 @@ export default function ContractDocument({ contract }: ContractDocumentProps) {
         <View style={styles.header}>
           <View>
             <Text style={styles.brandName}>REACT STUDIO</Text>
-            <Text style={styles.brandSub}>영상제작 프로덕션</Text>
+            <Text style={styles.brandSub}>(주) 그리고 엔터테인먼트 영상프로덕션</Text>
           </View>
           <View>
             <Text style={styles.docTitle}>견 적 서</Text>
             <Text style={styles.docNumber}>No. {docNumber}</Text>
+          </View>
+        </View>
+
+        {/* Issuer Info */}
+        <View style={{ flexDirection: 'row', marginBottom: 24, gap: 12 }}>
+          <View style={{ flex: 1, padding: 10, backgroundColor: '#f8f8f8', borderRadius: 4, borderLeftWidth: 3, borderLeftColor: '#FF4D00' }}>
+            <Text style={{ fontSize: 8, color: '#888888', marginBottom: 4 }}>발행자</Text>
+            <Text style={{ fontSize: 11, fontWeight: 700 }}>(주) 그리고 엔터테인먼트</Text>
+            <Text style={{ fontSize: 8, color: '#666666', marginTop: 4 }}>사업자등록번호 116-81-96848</Text>
+            <Text style={{ fontSize: 8, color: '#666666', marginTop: 2 }}>업태 : 정보통신업  종목 : 미디어콘텐츠창작업</Text>
+            <Text style={{ fontSize: 8, color: '#666666', marginTop: 2 }}>서울특별시 마포구 성지3길 55, 3층</Text>
+            <Text style={{ fontSize: 8, color: '#666666', marginTop: 2 }}>대표자명 : 김현준</Text>
           </View>
         </View>
 
@@ -169,7 +181,7 @@ export default function ContractDocument({ contract }: ContractDocumentProps) {
         ) : null}
 
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>React Studio | react.studio.kr@gmail.com</Text>
+          <Text style={styles.footerText}>(주) 그리고 엔터테인먼트 | React Studio | react.studio.kr@gmail.com</Text>
           <Text style={styles.footerText}>{docNumber}</Text>
         </View>
       </Page>
