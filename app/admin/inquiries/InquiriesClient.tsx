@@ -205,7 +205,7 @@ export default function InquiriesClient({ initialInquiries }: { initialInquiries
                 href={`/admin/contracts/new?inquiry_id=${selected.id}${selectedQuoteId ? `&quote_id=${selectedQuoteId}` : ''}`}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/10 text-white text-sm font-semibold rounded hover:bg-white/20 transition-colors"
               >
-                <FileSignature size={14} /> 계약서
+                <FileSignature size={14} /> 상세 견적서
               </Link>
             </div>
 

@@ -99,10 +99,10 @@ export interface Contract {
 }
 
 export const CONTRACT_TYPES = [
-  { value: 'service', label: '용역 계약' },
-  { value: 'production', label: '영상 제작 계약' },
-  { value: 'channel_operation', label: '채널 운영 계약' },
-  { value: 'outsource', label: '외주 계약' },
+  { value: 'service', label: '용역' },
+  { value: 'production', label: '영상 제작' },
+  { value: 'channel_operation', label: '채널 운영' },
+  { value: 'outsource', label: '외주' },
 ];
 
 export interface SiteSetting {

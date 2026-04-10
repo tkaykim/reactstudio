@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Send, Eye, Loader2, FileSignature } from 'lucide-react';
+import { Plus, Send, Loader2, FileSignature } from 'lucide-react';
 import type { Contract } from '@/types';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: '작성중', className: 'bg-white/10 text-white/50' },
-  sent: { label: '발송됨', className: 'bg-blue-500/20 text-blue-400' },
-  viewed: { label: '열람됨', className: 'bg-purple-500/20 text-purple-400' },
-  signed: { label: '서명완료', className: 'bg-green-500/20 text-green-400' },
-  completed: { label: '완료', className: 'bg-green-700/20 text-green-300' },
+  sent: { label: '발송완료', className: 'bg-green-500/20 text-green-400' },
   cancelled: { label: '취소', className: 'bg-red-500/20 text-red-400' },
 };
 
@@ -46,12 +43,12 @@ export default function ContractsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-black text-white">계약 관리</h1>
+        <h1 className="text-2xl font-black text-white">견적 관리</h1>
         <Link
           href="/admin/contracts/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-brand text-white text-sm font-semibold rounded hover:bg-orange-600 transition-colors"
         >
-          <Plus size={16} /> 새 계약서
+          <Plus size={16} /> 새 견적서
         </Link>
       </div>
 
@@ -60,14 +57,14 @@ export default function ContractsPage() {
       ) : contracts.length === 0 ? (
         <div className="text-center py-20 text-white/30">
           <FileSignature size={48} className="mx-auto mb-4 opacity-30" />
-          <p>계약서가 없습니다. 새 계약서를 작성해보세요.</p>
+          <p>견적서가 없습니다. 새 견적서를 작성해보세요.</p>
         </div>
       ) : (
         <div className="rounded-xl border border-white/10 overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-white/[0.03] border-b border-white/10">
-                {['계약명', '고객', '금액(VAT포함)', '상태', '발송일', '서명일', ''].map((h) => (
+                {['견적명', '고객', '금액(VAT포함)', '상태', '발송일', ''].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-white/40 text-xs font-medium">{h}</th>
                 ))}
               </tr>
@@ -92,28 +89,17 @@ export default function ContractsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-white/30 text-xs">{c.sent_at ? new Date(c.sent_at).toLocaleDateString('ko-KR') : '-'}</td>
-                  <td className="px-4 py-3 text-white/30 text-xs">{c.client_signed_at ? new Date(c.client_signed_at).toLocaleDateString('ko-KR') : '-'}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      {c.status === 'draft' && (
-                        <button
-                          onClick={() => sendContract(c.id)}
-                          disabled={sending === c.id}
-                          className="flex items-center gap-1 text-brand text-xs hover:underline disabled:opacity-40"
-                        >
-                          {sending === c.id ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                          발송
-                        </button>
-                      )}
-                      {c.client_signature_data && (
-                        <button
-                          onClick={() => window.open(`/contract/sign/${c.sign_token}`, '_blank')}
-                          className="flex items-center gap-1 text-green-400 text-xs hover:underline"
-                        >
-                          <Eye size={12} /> 확인
-                        </button>
-                      )}
-                    </div>
+                    {c.status === 'draft' && (
+                      <button
+                        onClick={() => sendContract(c.id)}
+                        disabled={sending === c.id}
+                        className="flex items-center gap-1 text-brand text-xs hover:underline disabled:opacity-40"
+                      >
+                        {sending === c.id ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                        발송
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

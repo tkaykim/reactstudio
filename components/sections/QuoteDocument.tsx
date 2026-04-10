@@ -1,11 +1,11 @@
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import '@/lib/pdf-fonts';
 import type { Quote, QuoteItem } from '@/types';
 
-// Register a font if needed (using built-in Helvetica for compatibility)
 const styles = StyleSheet.create({
   page: {
     padding: 50,
-    fontFamily: 'Helvetica',
+    fontFamily: 'NanumGothic',
     backgroundColor: '#ffffff',
     fontSize: 10,
     color: '#111111',
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   },
   brandName: {
     fontSize: 22,
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
     color: '#FF4D00',
   },
   brandSub: {
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
   docTitle: {
     fontSize: 14,
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
     textAlign: 'right',
   },
   docNumber: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
   },
   infoSub: {
     fontSize: 9,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   tableHeaderText: {
     color: '#ffffff',
     fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
   },
   tableRow: {
     flexDirection: 'row',
@@ -117,11 +117,11 @@ const styles = StyleSheet.create({
   },
   totalFinalLabel: {
     fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
   },
   totalFinalValue: {
     fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
     color: '#FF4D00',
   },
   notes: {
@@ -134,9 +134,8 @@ const styles = StyleSheet.create({
   notesLabel: {
     fontSize: 8,
     color: '#FF4D00',
-    fontFamily: 'Helvetica-Bold',
+    fontWeight: 700,
     marginBottom: 4,
-    textTransform: 'uppercase',
   },
   notesText: {
     fontSize: 9,
@@ -199,7 +198,7 @@ export default function QuoteDocument({ quote, clientName, clientCompany, projec
         {title ? (
           <View style={{ marginBottom: 20, padding: 12, backgroundColor: '#111111', borderRadius: 4 }}>
             <Text style={{ color: '#FF4D00', fontSize: 8, marginBottom: 4 }}>PROJECT</Text>
-            <Text style={{ color: '#ffffff', fontSize: 14, fontFamily: 'Helvetica-Bold' }}>{title}</Text>
+            <Text style={{ color: '#ffffff', fontSize: 14, fontWeight: 700 }}>{title}</Text>
           </View>
         ) : null}
 

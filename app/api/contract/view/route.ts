@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       .single();
 
     if (error || !contract) {
-      return NextResponse.json({ error: '계약서를 찾을 수 없습니다.' }, { status: 404 });
+      return NextResponse.json({ error: '견적서를 찾을 수 없습니다.' }, { status: 404 });
     }
 
     if (contract.status === 'sent') {

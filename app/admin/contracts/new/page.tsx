@@ -29,7 +29,7 @@ export default function NewContractPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [terms, setTerms] = useState(
-    '1. 본 계약의 범위는 상기 명시된 항목에 한합니다.\n2. 선금은 계약 체결 후 7일 이내에 입금해주셔야 합니다.\n3. 잔금은 최종 결과물 납품 후 7일 이내에 입금해주셔야 합니다.\n4. 계약 해지 시 진행된 작업에 대한 비용은 정산됩니다.'
+    '1. 본 견적의 범위는 상기 명시된 항목에 한합니다.\n2. 선금은 견적 확인 후 7일 이내에 입금해주셔야 합니다.\n3. 잔금은 최종 결과물 납품 후 7일 이내에 입금해주셔야 합니다.\n4. 중도 취소 시 진행된 작업에 대한 비용은 정산됩니다.'
   );
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -69,7 +69,7 @@ export default function NewContractPage() {
           setClientEmail(inq.email);
           setClientPhone(inq.phone);
           setClientCompany(inq.company || '');
-          setTitle(`${inq.company || inq.name} - ${inq.services?.[0] || '영상 제작'} 계약`);
+          setTitle(`${inq.company || inq.name} - ${inq.services?.[0] || '영상 제작'}`);
         }
       });
     }
@@ -101,7 +101,7 @@ export default function NewContractPage() {
 
   async function saveContract(): Promise<number | null> {
     if (!title || !clientName || !clientEmail) {
-      setMessage('계약명, 고객명, 이메일은 필수입니다.');
+      setMessage('견적명, 고객명, 이메일은 필수입니다.');
       return null;
     }
     setSaving(true);
@@ -168,7 +168,7 @@ export default function NewContractPage() {
       const data = await res.json();
       if (data.success) {
         setContractStatus('sent');
-        setMessage('계약서가 고객 이메일로 발송되었습니다.');
+        setMessage('견적서가 고객 이메일로 발송되었습니다.');
       } else {
         setMessage('발송 실패: ' + data.error);
       }
@@ -179,19 +179,19 @@ export default function NewContractPage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-black text-white mb-6">{editId ? '계약서 수정' : '새 계약서 작성'}</h1>
+      <h1 className="text-2xl font-black text-white mb-6">{editId ? '견적서 수정' : '새 견적서 작성'}</h1>
 
       {/* Basic info */}
       <div className="space-y-4 mb-8">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-white/40 text-xs mb-1.5 block">계약명 *</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: OOO 뮤직비디오 제작 계약" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand placeholder:text-white/20" />
+            <label className="text-white/40 text-xs mb-1.5 block">견적명 *</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: OOO 뮤직비디오 제작" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand placeholder:text-white/20" />
           </div>
           <div>
-            <label className="text-white/40 text-xs mb-1.5 block">계약 유형</label>
+            <label className="text-white/40 text-xs mb-1.5 block">견적 유형</label>
             <select value={contractType} onChange={(e) => setContractType(e.target.value)} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand">
-              {CONTRACT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              {CONTRACT_TYPES.map((t) => <option key={t.value} value={t.value} className="bg-neutral-900 text-white">{t.label}</option>)}
             </select>
           </div>
         </div>
@@ -220,18 +220,18 @@ export default function NewContractPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-white/40 text-xs mb-1.5 block">계약 시작일</label>
+            <label className="text-white/40 text-xs mb-1.5 block">시작일</label>
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand" />
           </div>
           <div>
-            <label className="text-white/40 text-xs mb-1.5 block">계약 종료일</label>
+            <label className="text-white/40 text-xs mb-1.5 block">종료일</label>
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand" />
           </div>
         </div>
       </div>
 
       {/* Items table */}
-      <h2 className="text-white font-bold mb-3">계약 항목</h2>
+      <h2 className="text-white font-bold mb-3">견적 항목</h2>
       <div className="rounded-xl border border-white/10 overflow-hidden mb-4">
         <table className="w-full">
           <thead>
@@ -292,7 +292,7 @@ export default function NewContractPage() {
 
       {/* Terms */}
       <div className="mb-6">
-        <label className="text-white/40 text-xs mb-1.5 block">계약 조건</label>
+        <label className="text-white/40 text-xs mb-1.5 block">특이사항</label>
         <textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={6} className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand resize-none placeholder:text-white/20" />
       </div>
 
@@ -305,17 +305,10 @@ export default function NewContractPage() {
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           저장
         </button>
-        {contractStatus === 'draft' && (
-          <button onClick={sendContract} disabled={sending || saving} className="flex items-center gap-2 px-6 py-3 bg-brand text-white text-sm font-semibold rounded hover:bg-orange-600 disabled:opacity-40 transition-colors">
-            {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-            이메일 발송
-          </button>
-        )}
-        {contractStatus === 'sent' && (
-          <span className="flex items-center gap-2 px-6 py-3 bg-blue-500/10 text-blue-400 text-sm font-medium rounded">
-            발송 완료
-          </span>
-        )}
+        <button onClick={sendContract} disabled={sending || saving} className="flex items-center gap-2 px-6 py-3 bg-brand text-white text-sm font-semibold rounded hover:bg-orange-600 disabled:opacity-40 transition-colors">
+          {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {contractStatus === 'sent' ? '재발송' : '이메일 발송'}
+        </button>
       </div>
     </div>
   );

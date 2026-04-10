@@ -27,7 +27,7 @@ export default function ContractSignPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.contract) setContract(data.contract);
-        else setError(data.error || '계약서를 찾을 수 없습니다.');
+        else setError(data.error || '견적서를 찾을 수 없습니다.');
       })
       .catch(() => setError('오류가 발생했습니다.'))
       .finally(() => setLoading(false));
@@ -59,7 +59,7 @@ export default function ContractSignPage() {
       return;
     }
     if (!agreed) {
-      setError('계약 조건에 동의해주세요.');
+      setError('견적 내용에 동의해주세요.');
       return;
     }
     setError('');
@@ -116,7 +116,7 @@ export default function ContractSignPage() {
         <div className="max-w-3xl mx-auto px-4 py-5 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-black text-brand">REACT STUDIO</h1>
-            <p className="text-white/30 text-xs mt-0.5">계약서</p>
+            <p className="text-white/30 text-xs mt-0.5">견적서</p>
           </div>
           <span className="text-white/30 text-sm">RS-C{String(contract.id).padStart(5, '0')}</span>
         </div>
@@ -132,7 +132,7 @@ export default function ContractSignPage() {
         {/* Meta */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
           {[
-            { icon: Calendar, label: '계약 기간', value: contract.start_date && contract.end_date ? `${contract.start_date} ~ ${contract.end_date}` : '별도 협의' },
+            { icon: Calendar, label: '기간', value: contract.start_date && contract.end_date ? `${contract.start_date} ~ ${contract.end_date}` : '별도 협의' },
             { icon: CreditCard, label: '공급가액', value: formatKRW(contract.supply_amount) },
             { icon: CreditCard, label: '부가세 (10%)', value: formatKRW(contract.vat) },
             { icon: CreditCard, label: '합계 (VAT 포함)', value: formatKRW(contract.total_amount) },
@@ -176,7 +176,7 @@ export default function ContractSignPage() {
         {/* Terms */}
         {contract.terms && (
           <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 mb-8">
-            <h3 className="text-white font-bold text-sm mb-3">계약 조건</h3>
+            <h3 className="text-white font-bold text-sm mb-3">특이사항</h3>
             <p className="text-white/50 text-sm whitespace-pre-wrap leading-relaxed">{contract.terms}</p>
           </div>
         )}
@@ -186,7 +186,7 @@ export default function ContractSignPage() {
           <div className="p-6 rounded-xl border border-green-500/30 bg-green-500/5 text-center">
             <Check size={32} className="text-green-400 mx-auto mb-3" />
             <p className="text-green-400 font-bold text-lg">서명이 완료되었습니다</p>
-            <p className="text-white/40 text-sm mt-2">계약서 서명이 정상적으로 처리되었습니다. 감사합니다.</p>
+            <p className="text-white/40 text-sm mt-2">견적서 확인 및 서명이 정상적으로 처리되었습니다. 감사합니다.</p>
             {contract.client_signature_data && (
               <div className="mt-4 inline-block p-3 bg-white rounded-lg">
                 <img src={contract.client_signature_data} alt="서명" className="h-16" />
@@ -203,7 +203,7 @@ export default function ContractSignPage() {
             <label className="flex items-start gap-3 mb-4 cursor-pointer">
               <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 accent-brand" />
               <span className="text-white/60 text-sm">
-                위 계약 내용을 확인하였으며, 계약 조건에 동의합니다.
+                위 견적 내용을 확인하였으며, 내용에 동의합니다.
               </span>
             </label>
 

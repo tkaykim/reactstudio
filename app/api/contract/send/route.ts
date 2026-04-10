@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase';
 import { transporter } from '@/lib/email';
+import { renderToBuffer } from '@react-pdf/renderer';
+import { buildContractDocument } from '@/components/sections/ContractDocument';
 
 export async function POST(req: NextRequest) {
   try {
     const { contractId } = await req.json();
 
     if (!contractId) {
-      return NextResponse.json({ error: '계약서 ID가 필요합니다.' }, { status: 400 });
+      return NextResponse.json({ error: '견적서 ID가 필요합니다.' }, { status: 400 });
     }
 
     const supabase = createSupabaseAdminClient();
@@ -20,40 +22,75 @@ export async function POST(req: NextRequest) {
 
     if (error || !contract) {
       console.error('Contract fetch error:', error);
-      return NextResponse.json({ error: '계약서를 찾을 수 없습니다.' }, { status: 404 });
+      return NextResponse.json({ error: '견적서를 찾을 수 없습니다.' }, { status: 404 });
     }
 
     if (!contract.client_email) {
       return NextResponse.json({ error: '고객 이메일이 없습니다.' }, { status: 400 });
     }
 
-    const signUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/contract/sign/${contract.sign_token}`;
+    const docNumber = `RS-C${String(contract.id).padStart(5, '0')}`;
+
+    let pdfBuffer: Buffer;
+    try {
+      const rawBuffer = await renderToBuffer(buildContractDocument({ contract }));
+      pdfBuffer = Buffer.from(rawBuffer);
+    } catch (pdfErr) {
+      console.error('PDF generation error:', pdfErr);
+      return NextResponse.json(
+        { error: 'PDF 생성에 실패했습니다. 견적서 항목을 확인해주세요.' },
+        { status: 500 }
+      );
+    }
 
     try {
       await transporter.sendMail({
         from: `"React Studio" <${process.env.SMTP_USER}>`,
         to: contract.client_email,
-        subject: `[React Studio] 계약서 서명 요청 - ${contract.title}`,
+        subject: `[React Studio] 견적서 전달 - ${contract.title} (${docNumber})`,
         html: `
-          <h2>안녕하세요, ${contract.client_name}님</h2>
-          <p><b>${contract.title}</b> 계약서가 준비되었습니다.</p>
-          <p>아래 버튼을 클릭하여 계약 내용을 확인하고 서명해주세요.</p>
-          <p style="margin:24px 0">
-            <a href="${signUrl}" style="display:inline-block;padding:14px 32px;background-color:#FF4D00;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-size:14px">
-              계약서 확인 및 서명하기
-            </a>
-          </p>
-          <table style="border-collapse:collapse;width:100%;margin-top:16px">
-            <tr><td style="padding:8px;border:1px solid #ddd"><b>계약명</b></td><td style="padding:8px;border:1px solid #ddd">${contract.title}</td></tr>
-            <tr><td style="padding:8px;border:1px solid #ddd"><b>공급가액</b></td><td style="padding:8px;border:1px solid #ddd">${Number(contract.supply_amount).toLocaleString()}원</td></tr>
-            <tr><td style="padding:8px;border:1px solid #ddd"><b>부가세 (10%)</b></td><td style="padding:8px;border:1px solid #ddd">${Number(contract.vat).toLocaleString()}원</td></tr>
-            <tr><td style="padding:8px;border:1px solid #ddd"><b>합계 (VAT 포함)</b></td><td style="padding:8px;border:1px solid #ddd;font-weight:bold">${Number(contract.total_amount).toLocaleString()}원</td></tr>
-            ${contract.start_date ? `<tr><td style="padding:8px;border:1px solid #ddd"><b>계약 기간</b></td><td style="padding:8px;border:1px solid #ddd">${contract.start_date} ~ ${contract.end_date || ''}</td></tr>` : ''}
-          </table>
-          <p style="margin-top:16px;color:#888;font-size:12px">위 버튼이 작동하지 않으면 아래 링크를 브라우저에 붙여넣기 해주세요:<br>${signUrl}</p>
-          <br>
-          <p><b>React Studio</b></p>
+          <div style="max-width:600px;margin:0 auto;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111">
+            <div style="border-bottom:3px solid #FF4D00;padding-bottom:16px;margin-bottom:24px">
+              <table width="100%"><tr>
+                <td><span style="font-size:24px;font-weight:bold;color:#FF4D00">REACT STUDIO</span><br><span style="font-size:12px;color:#888">영상제작 프로덕션</span></td>
+                <td style="text-align:right"><span style="font-size:18px;font-weight:bold">견 적 서</span><br><span style="font-size:11px;color:#888">No. ${docNumber}</span></td>
+              </tr></table>
+            </div>
+
+            <p style="font-size:14px;margin-bottom:4px">안녕하세요, <b>${contract.client_name}</b>님.</p>
+            <p style="font-size:14px;color:#333">React Studio입니다.</p>
+
+            <p style="font-size:13px;color:#444;line-height:1.8;margin:20px 0">
+              문의해주신 건에 대한 견적서를 전달드립니다.<br>
+              첨부된 PDF 파일에서 상세 내역을 확인하실 수 있습니다.
+            </p>
+
+            <table style="border-collapse:collapse;width:100%;margin:20px 0">
+              <tr><td style="padding:10px 12px;border:1px solid #eee;background:#f8f8f8;font-size:13px;width:140px"><b>견적명</b></td><td style="padding:10px 12px;border:1px solid #eee;font-size:13px">${contract.title}</td></tr>
+              <tr><td style="padding:10px 12px;border:1px solid #eee;background:#f8f8f8;font-size:13px"><b>합계 (VAT 포함)</b></td><td style="padding:10px 12px;border:1px solid #eee;font-size:13px;font-weight:bold;color:#FF4D00">${Number(contract.total_amount).toLocaleString()}원</td></tr>
+              ${contract.start_date ? `<tr><td style="padding:10px 12px;border:1px solid #eee;background:#f8f8f8;font-size:13px"><b>예상 기간</b></td><td style="padding:10px 12px;border:1px solid #eee;font-size:13px">${contract.start_date} ~ ${contract.end_date || ''}</td></tr>` : ''}
+            </table>
+
+            <p style="font-size:13px;color:#444;line-height:1.8;margin:20px 0">
+              견적 내용 관련 문의사항이나 조정이 필요하신 부분이 있으시면<br>
+              편하게 연락주시기 바랍니다.
+            </p>
+
+            <p style="font-size:13px;color:#111;margin-top:28px">감사합니다.</p>
+
+            <div style="border-top:1px solid #eee;padding-top:16px;margin-top:28px">
+              <p style="font-size:13px;font-weight:bold;color:#FF4D00;margin:0 0 4px">React Studio</p>
+              <p style="font-size:12px;color:#888;margin:0">react.studio.kr@gmail.com</p>
+            </div>
+          </div>
         `,
+        attachments: [
+          {
+            filename: `ReactStudio_견적서_${docNumber}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
       });
     } catch (emailErr) {
       console.error('Contract email send error:', emailErr);

@@ -208,7 +208,7 @@ export default function ClientPortalPage() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <FileSignature size={16} className="text-brand" />
-              <h3 className="text-white font-bold">계약서</h3>
+              <h3 className="text-white font-bold">견적서</h3>
             </div>
             <div className="space-y-2">
               {contracts.map((c) => (
@@ -246,7 +246,7 @@ export default function ClientPortalPage() {
               done={quotes.some((q) => q.client_response === 'approved')}
             />
             <TimelineItem
-              label="계약서 서명"
+              label="견적서 서명"
               date={contracts[0]?.client_signed_at}
               done={contracts.some((c) => c.status === 'signed' || c.status === 'completed')}
             />

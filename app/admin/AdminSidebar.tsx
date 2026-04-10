@@ -9,7 +9,7 @@ import Image from 'next/image';
 const navItems = [
   { href: '/admin', icon: LayoutDashboard, label: '대시보드' },
   { href: '/admin/inquiries', icon: MessageSquare, label: '문의 관리' },
-  { href: '/admin/contracts', icon: FileSignature, label: '계약 관리' },
+  { href: '/admin/contracts', icon: FileSignature, label: '견적 관리' },
   { href: '/admin/portfolio', icon: Film, label: '포트폴리오' },
 ];
 
