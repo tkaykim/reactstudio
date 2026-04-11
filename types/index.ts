@@ -6,7 +6,7 @@ export interface PortfolioItem {
   id: number;
   bu_code: BuCode;
   youtube_video_id: string;
-  youtube_playlist_id: string;
+  youtube_playlist_id: string | null;
   title: string;
   thumbnail_url: string;
   category: string;

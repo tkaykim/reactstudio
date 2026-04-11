@@ -1,57 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseAdminClient } from '@/lib/supabase';
-import { fetchPlaylistVideos } from '@/lib/youtube';
-import { CURRENT_BU_CODE } from '@/types';
 
-export async function POST(req: NextRequest) {
+function extractVideoId(input: string): string | null {
+  const trimmed = input.trim();
+
+  const patterns = [
+    /(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match) return match[1];
+  }
+
+  return null;
+}
+
+export async function GET(req: NextRequest) {
+  const url = req.nextUrl.searchParams.get('url');
+  if (!url) {
+    return NextResponse.json({ error: 'url parameter required' }, { status: 400 });
+  }
+
+  const videoId = extractVideoId(url);
+  if (!videoId) {
+    return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
+  }
+
   try {
-    const { playlistId, category } = await req.json();
+    const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+    const res = await fetch(oembedUrl);
 
-    if (!playlistId) return NextResponse.json({ error: 'playlistId required' }, { status: 400 });
-
-    const videos = await fetchPlaylistVideos(playlistId);
-    const supabase = createSupabaseAdminClient();
-
-    let added = 0;
-    let updated = 0;
-
-    for (const video of videos) {
-      const { data: existing } = await supabase
-        .from('portfolio_items')
-        .select('id')
-        .eq('bu_code', CURRENT_BU_CODE)
-        .eq('youtube_video_id', video.videoId)
-        .single();
-
-      if (existing) {
-        await supabase
-          .from('portfolio_items')
-          .update({
-            title: video.title,
-            thumbnail_url: video.thumbnailUrl,
-            ...(category ? { category } : {}),
-          })
-          .eq('id', existing.id);
-        updated++;
-      } else {
-        await supabase.from('portfolio_items').insert({
-          bu_code: CURRENT_BU_CODE,
-          youtube_video_id: video.videoId,
-          youtube_playlist_id: playlistId,
-          title: video.title,
-          thumbnail_url: video.thumbnailUrl,
-          category: category || '뮤직비디오',
-          published_at: video.publishedAt,
-          is_visible: true,
-          display_order: 0,
-        });
-        added++;
-      }
+    if (!res.ok) {
+      return NextResponse.json({ error: 'YouTube 영상을 찾을 수 없습니다.' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, added, updated, total: videos.length });
-  } catch (e) {
-    console.error('YouTube sync error:', e);
-    return NextResponse.json({ error: '동기화에 실패했습니다.' }, { status: 500 });
+    const data = await res.json();
+
+    const thumbnailUrl =
+      `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
+    return NextResponse.json({
+      videoId,
+      title: data.title,
+      thumbnailUrl,
+      authorName: data.author_name,
+    });
+  } catch {
+    return NextResponse.json({ error: '영상 정보를 가져올 수 없습니다.' }, { status: 500 });
   }
 }
