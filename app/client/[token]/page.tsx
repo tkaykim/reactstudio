@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
-  Loader2, AlertCircle, CheckCircle, Clock, FileText,
-  FileSignature, Briefcase, ChevronRight
+  Loader2, AlertCircle, CheckCircle, Clock,
+  FileSignature, Briefcase,
 } from 'lucide-react';
 
 interface PortalData {
@@ -15,13 +15,6 @@ interface PortalData {
     status: string;
     created_at: string;
   };
-  quotes: Array<{
-    id: number;
-    status: string;
-    total_amount: number;
-    client_response: string | null;
-    sent_at: string | null;
-  }>;
   contracts: Array<{
     id: number;
     title: string;
@@ -94,7 +87,7 @@ export default function ClientPortalPage() {
     );
   }
 
-  const { inquiry, quotes, contracts, project } = data;
+  const { inquiry, contracts, project } = data;
   const StatusIcon = inquiryStatusConfig[inquiry.status]?.icon || Clock;
   const progressPercent = project && project.total_tasks > 0
     ? Math.round((project.done_tasks / project.total_tasks) * 100)
@@ -168,42 +161,7 @@ export default function ClientPortalPage() {
           </section>
         )}
 
-        {/* Quotes */}
-        {quotes.length > 0 && (
-          <section>
-            <div className="flex items-center gap-2 mb-3">
-              <FileText size={16} className="text-brand" />
-              <h3 className="text-white font-bold">견적서</h3>
-            </div>
-            <div className="space-y-2">
-              {quotes.map((q) => (
-                <div key={q.id} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.02]">
-                  <div>
-                    <p className="text-white text-sm font-medium">RS-{String(q.id).padStart(6, '0')}</p>
-                    <p className="text-white/30 text-xs mt-0.5">{Number(q.total_amount).toLocaleString()}원</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      q.client_response === 'approved' ? 'bg-green-500/20 text-green-400'
-                      : q.client_response === 'revision_requested' ? 'bg-yellow-500/20 text-yellow-400'
-                      : q.client_response === 'rejected' ? 'bg-red-500/20 text-red-400'
-                      : q.status === 'sent' ? 'bg-blue-500/20 text-blue-400'
-                      : 'bg-white/10 text-white/40'
-                    }`}>
-                      {q.client_response === 'approved' ? '승인됨'
-                      : q.client_response === 'revision_requested' ? '수정 요청'
-                      : q.client_response === 'rejected' ? '거절됨'
-                      : q.status === 'sent' ? '검토 중'
-                      : '작성 중'}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Contracts */}
+        {/* Contracts (견적서) */}
         {contracts.length > 0 && (
           <section>
             <div className="flex items-center gap-2 mb-3">
@@ -240,11 +198,7 @@ export default function ClientPortalPage() {
           <h3 className="text-white font-bold mb-3">진행 타임라인</h3>
           <div className="relative pl-6 border-l border-white/10 space-y-4">
             <TimelineItem label="문의 접수" date={inquiry.created_at} done />
-            <TimelineItem label="견적서 발송" date={quotes[0]?.sent_at} done={!!quotes[0]?.sent_at} />
-            <TimelineItem
-              label="견적 승인"
-              done={quotes.some((q) => q.client_response === 'approved')}
-            />
+            <TimelineItem label="견적서 발송" date={contracts[0]?.sent_at} done={!!contracts[0]?.sent_at} />
             <TimelineItem
               label="견적서 서명"
               date={contracts[0]?.client_signed_at}

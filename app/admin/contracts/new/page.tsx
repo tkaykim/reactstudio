@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { Plus, Trash2, Save, Loader2, Send } from 'lucide-react';
 import { CONTRACT_TYPES } from '@/types';
-import type { QuoteItem, Inquiry, Quote } from '@/types';
+import type { QuoteItem, Inquiry } from '@/types';
 
 function calcAmounts(items: QuoteItem[]) {
   return items.reduce((sum, i) => sum + i.amount, 0);
@@ -15,7 +15,6 @@ export default function NewContractPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inquiryId = searchParams.get('inquiry_id');
-  const quoteId = searchParams.get('quote_id');
   const editId = searchParams.get('edit');
 
   const [title, setTitle] = useState('');
@@ -39,50 +38,60 @@ export default function NewContractPage() {
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
 
+    function loadContract(data: Record<string, unknown>) {
+      setTitle(data.title as string);
+      setContractType(data.contract_type as string);
+      setClientName(data.client_name as string);
+      setClientEmail(data.client_email as string);
+      setClientPhone((data.client_phone as string) || '');
+      setClientCompany((data.client_company as string) || '');
+      const contractItems = data.items as QuoteItem[] | null;
+      setItems(contractItems?.length ? contractItems : [{ name: '', qty: 1, unit_price: 0, amount: 0 }]);
+      setStartDate((data.start_date as string) || '');
+      setEndDate((data.end_date as string) || '');
+      setTerms((data.terms as string) || '');
+      setContractStatus((data.status as string) || 'draft');
+      const total = data.total_amount as number;
+      const deposit = data.deposit_amount as number;
+      if (total > 0 && deposit > 0) {
+        setDepositRate(Math.round((deposit / total) * 100));
+      }
+    }
+
     if (editId) {
       supabase.from('contracts').select('*').eq('id', editId).single().then(({ data }) => {
-        if (data) {
-          setTitle(data.title);
-          setContractType(data.contract_type);
-          setClientName(data.client_name);
-          setClientEmail(data.client_email);
-          setClientPhone(data.client_phone || '');
-          setClientCompany(data.client_company || '');
-          setItems(data.items?.length ? data.items : [{ name: '', qty: 1, unit_price: 0, amount: 0 }]);
-          setStartDate(data.start_date || '');
-          setEndDate(data.end_date || '');
-          setTerms(data.terms || '');
-          setContractStatus(data.status || 'draft');
-          if (data.total_amount > 0 && data.deposit_amount > 0) {
-            setDepositRate(Math.round((data.deposit_amount / data.total_amount) * 100));
-          }
-        }
+        if (data) loadContract(data);
       });
       return;
     }
 
     if (inquiryId) {
-      supabase.from('inquiries').select('*').eq('id', inquiryId).single().then(({ data }) => {
-        if (data) {
-          const inq = data as Inquiry;
-          setClientName(inq.name);
-          setClientEmail(inq.email);
-          setClientPhone(inq.phone);
-          setClientCompany(inq.company || '');
-          setTitle(`${inq.company || inq.name} - ${inq.services?.[0] || '영상 제작'}`);
-        }
-      });
+      supabase
+        .from('contracts')
+        .select('*')
+        .eq('inquiry_id', inquiryId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+        .then(({ data: existingContract }) => {
+          if (existingContract) {
+            loadContract(existingContract);
+            router.replace(`/admin/contracts/new?edit=${existingContract.id}`);
+          } else {
+            supabase.from('inquiries').select('*').eq('id', inquiryId).single().then(({ data }) => {
+              if (data) {
+                const inq = data as Inquiry;
+                setClientName(inq.name);
+                setClientEmail(inq.email);
+                setClientPhone(inq.phone);
+                setClientCompany(inq.company || '');
+                setTitle(`${inq.company || inq.name} - ${inq.services?.[0] || '영상 제작'}`);
+              }
+            });
+          }
+        });
     }
-
-    if (quoteId) {
-      supabase.from('quotes').select('*').eq('id', quoteId).single().then(({ data }) => {
-        if (data) {
-          const q = data as Quote;
-          if (q.items?.length) setItems(q.items);
-        }
-      });
-    }
-  }, [editId, inquiryId, quoteId]);
+  }, [editId, inquiryId, router]);
 
   const updateItem = (index: number, field: keyof QuoteItem, value: string | number) => {
     setItems((prev) => {
@@ -116,7 +125,6 @@ export default function NewContractPage() {
         client_phone: clientPhone || null,
         client_company: clientCompany || null,
         inquiry_id: inquiryId ? Number(inquiryId) : null,
-        quote_id: quoteId ? Number(quoteId) : null,
         items,
         supply_amount: supplyAmount,
         vat: vatAmount,

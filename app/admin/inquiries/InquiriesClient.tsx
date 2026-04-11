@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
-import { FileText, FileSignature, ExternalLink } from 'lucide-react';
+import { FileSignature, ExternalLink } from 'lucide-react';
 import type { Inquiry } from '@/types';
 
 const statusOptions = [
@@ -16,24 +15,6 @@ export default function InquiriesClient({ initialInquiries }: { initialInquiries
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [selected, setSelected] = useState<Inquiry | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [selectedQuoteId, setSelectedQuoteId] = useState<number | null>(null);
-
-  const fetchQuoteForInquiry = useCallback(async (inquiryId: number) => {
-    setSelectedQuoteId(null);
-    const supabase = createSupabaseBrowserClient();
-    const { data } = await supabase
-      .from('quotes')
-      .select('id')
-      .eq('inquiry_id', inquiryId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-    if (data) setSelectedQuoteId(data.id);
-  }, []);
-
-  useEffect(() => {
-    if (selected) fetchQuoteForInquiry(selected.id);
-  }, [selected, fetchQuoteForInquiry]);
 
   const filtered =
     filterStatus === 'all' ? inquiries : inquiries.filter((i) => i.status === filterStatus);
@@ -114,11 +95,11 @@ export default function InquiriesClient({ initialInquiries }: { initialInquiries
                     </td>
                     <td className="px-4 py-3">
                       <Link
-                        href={`/admin/quotes/${inq.id}`}
+                        href={`/admin/contracts/new?inquiry_id=${inq.id}`}
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-brand text-xs hover:underline"
                       >
-                        <FileText size={12} /> 견적서
+                        <FileSignature size={12} /> 견적서
                       </Link>
                     </td>
                   </tr>
@@ -196,16 +177,10 @@ export default function InquiriesClient({ initialInquiries }: { initialInquiries
 
             <div className="flex gap-2 mt-2">
               <Link
-                href={`/admin/quotes/${selected.id}`}
+                href={`/admin/contracts/new?inquiry_id=${selected.id}`}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-brand text-white text-sm font-semibold rounded hover:bg-orange-600 transition-colors"
               >
-                <FileText size={14} /> 견적서
-              </Link>
-              <Link
-                href={`/admin/contracts/new?inquiry_id=${selected.id}${selectedQuoteId ? `&quote_id=${selectedQuoteId}` : ''}`}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/10 text-white text-sm font-semibold rounded hover:bg-white/20 transition-colors"
-              >
-                <FileSignature size={14} /> 상세 견적서
+                <FileSignature size={14} /> 견적서
               </Link>
             </div>
             <Link

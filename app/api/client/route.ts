@@ -20,12 +20,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: '정보를 찾을 수 없습니다.' }, { status: 404 });
     }
 
-    const { data: quotes } = await supabase
-      .from('quotes')
-      .select('id, status, total_amount, client_response, sent_at, created_at')
-      .eq('inquiry_id', inquiry.id)
-      .order('created_at', { ascending: false });
-
     const { data: contracts } = await supabase
       .from('contracts')
       .select('id, title, status, total_amount, client_signed_at, sent_at, created_at')
@@ -61,7 +55,6 @@ export async function GET(req: NextRequest) {
         status: inquiry.status,
         created_at: inquiry.created_at,
       },
-      quotes: quotes ?? [],
       contracts: contracts ?? [],
       project,
     });
