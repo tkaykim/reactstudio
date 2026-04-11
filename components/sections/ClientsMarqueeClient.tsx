@@ -8,6 +8,10 @@ const LOGO_WIDTH = 180;
 const LOGO_GAP = 48;
 const SPEED = 0.5;
 
+// 이미지가 이 픽셀 범위 안에서 정비율로 표시됩니다
+const LOGO_MAX_W = 150;
+const LOGO_MAX_H = 60;
+
 export default function ClientsMarqueeClient({ clients }: { clients: Client[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -45,12 +49,12 @@ export default function ClientsMarqueeClient({ clients }: { clients: Client[] })
   const repeated = Array.from({ length: displayCount }, () => clients).flat();
 
   return (
-    <section className="py-20 bg-black overflow-hidden">
+    <section className="py-20 bg-zinc-900 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
         <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
           Work With
         </h2>
-        <p className="text-white/30 text-sm mt-3">
+        <p className="text-white/50 text-sm mt-3">
           함께 작업한 클라이언트
         </p>
       </div>
@@ -87,7 +91,14 @@ export default function ClientsMarqueeClient({ clients }: { clients: Client[] })
               <img
                 src={client.logo_url}
                 alt={client.name}
-                className="max-w-full max-h-full object-contain opacity-40 hover:opacity-100 transition-opacity duration-300 select-none pointer-events-none"
+                style={{
+                  maxWidth: LOGO_MAX_W,
+                  maxHeight: LOGO_MAX_H,
+                  width: 'auto',
+                  height: 'auto',
+                  filter: 'brightness(0) invert(1)',
+                }}
+                className="opacity-70 hover:opacity-100 transition-opacity duration-300 select-none pointer-events-none"
                 draggable={false}
               />
             </div>
