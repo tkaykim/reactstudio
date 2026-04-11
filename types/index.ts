@@ -143,6 +143,16 @@ export interface Agreement {
   updated_at: string;
 }
 
+export interface Client {
+  id: number;
+  bu_code: BuCode;
+  name: string;
+  logo_url: string;
+  display_order: number;
+  is_visible: boolean;
+  created_at: string;
+}
+
 export interface SiteSetting {
   key: string;
   value: string;

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, FileText, Film, FileSignature, LogOut } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, FileText, Film, FileSignature, Users, LogOut } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import Image from 'next/image';
 
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/admin/contracts', icon: FileSignature, label: '견적 관리' },
   { href: '/admin/agreements', icon: FileText, label: '계약 관리' },
   { href: '/admin/portfolio', icon: Film, label: '포트폴리오' },
+  { href: '/admin/clients', icon: Users, label: '클라이언트' },
 ];
 
 export default function AdminSidebar() {

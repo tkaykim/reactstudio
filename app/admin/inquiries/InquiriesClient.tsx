@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { FileSignature, ExternalLink } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import type { Inquiry } from '@/types';
 
 const statusOptions = [

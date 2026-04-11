@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import HeroSection from '@/components/sections/HeroSection';
 import ServicesSection from '@/components/sections/ServicesSection';
 import FeaturedWork from '@/components/sections/FeaturedWork';
+import ClientsMarquee from '@/components/sections/ClientsMarquee';
 import CtaSection from '@/components/sections/CtaSection';
 
 export const revalidate = 3600;
@@ -14,6 +15,9 @@ export default function HomePage() {
         <FeaturedWork />
       </Suspense>
       <ServicesSection />
+      <Suspense>
+        <ClientsMarquee />
+      </Suspense>
       <CtaSection />
     </>
   );
