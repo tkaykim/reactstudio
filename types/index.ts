@@ -187,3 +187,82 @@ export const PROJECT_SCALES: { value: string; description: string }[] = [
   { value: '중형', description: '여러 씬·장소, 1~2주 일정, 중간 규모 팀·장비' },
   { value: '대형', description: '다수 에피소드·캠페인, 대규모 팀·장비, 장기 일정' },
 ];
+
+// --- Start Wizard ---
+
+export type ContentType = 'artwork' | 'entertainment' | 'commercial';
+
+export const CONTENT_TYPES: {
+  value: ContentType;
+  title: string;
+  subtitle: string;
+  description: string;
+  services: string[];
+}[] = [
+  {
+    value: 'artwork',
+    title: '아트워크',
+    subtitle: 'Artwork',
+    description: '아티스트의 음악과 퍼포먼스를 영상으로',
+    services: ['뮤직비디오', '댄스비디오/퍼포먼스', '라이브 클립'],
+  },
+  {
+    value: 'entertainment',
+    title: '엔터테인먼트',
+    subtitle: 'Entertainment',
+    description: '시청자를 사로잡는 콘텐츠',
+    services: ['웹예능', '숏폼'],
+  },
+  {
+    value: 'commercial',
+    title: '커머셜',
+    subtitle: 'Commercial',
+    description: '브랜드와 제품의 가치를 전달',
+    services: ['홍보영상', '브랜드필름', '제품광고', '공간광고', '기타'],
+  },
+];
+
+export const SERVICE_TO_PORTFOLIO_CATEGORY: Record<string, string> = {
+  '뮤직비디오': '뮤직비디오',
+  '댄스비디오/퍼포먼스': '댄스비디오/퍼포먼스',
+  '라이브 클립': '라이브 클립',
+  '웹예능': '웹예능',
+  '숏폼': '웹예능',
+  '홍보영상': '뮤직비디오',
+  '브랜드필름': '뮤직비디오',
+  '제품광고': '뮤직비디오',
+  '공간광고': '뮤직비디오',
+  '기타': '',
+};
+
+export const VIDEO_COUNTS = ['1편', '2~3편', '4~5편', '6편 이상', '미정'] as const;
+
+export const MEETING_PREFERENCES = [
+  { value: 'in_person', label: '대면 미팅', description: '직접 만나서 상담' },
+  { value: 'video_call', label: '화상 미팅', description: 'Zoom, Google Meet 등' },
+  { value: 'phone_call', label: '전화 상담', description: '간단한 통화로 진행' },
+  { value: 'none', label: '미팅 없이 진행', description: '메일/메시지로 소통' },
+] as const;
+
+export const TIME_SLOTS = ['오전 (9~12시)', '오후 (12~18시)', '저녁 (18시 이후)', '무관'] as const;
+
+export interface StartFormData {
+  content_types: ContentType[];
+  services: string[];
+  custom_service: string;
+  video_count: string;
+  project_scale: string;
+  description: string;
+  reference_urls: string[];
+  budget_range: string;
+  deadline: string;
+  deadline_flexible: boolean;
+  meeting_preference: string;
+  preferred_date: string;
+  preferred_time_slot: string;
+  additional_request: string;
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+}

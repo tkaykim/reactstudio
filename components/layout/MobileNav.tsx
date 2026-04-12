@@ -60,11 +60,11 @@ export default function MobileNav({ links, isOpen, onClose, currentPath }: Mobil
 
         <div className="mt-auto">
           <Link
-            href="/contact"
+            href="/start"
             onClick={onClose}
             className="block w-full text-center px-4 py-3 bg-brand text-white font-semibold rounded hover:bg-orange-600 transition-colors"
           >
-            프로젝트 문의하기
+            프로젝트 시작하기
           </Link>
         </div>
       </div>

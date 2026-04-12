@@ -6,7 +6,14 @@ import { CURRENT_BU_CODE } from '@/types';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, company, services, project_title, project_scale, deadline, budget_range, description, reference_urls, message } = body;
+    const {
+      name, email, phone, company, services,
+      project_title, project_scale, deadline, budget_range,
+      description, reference_urls, message,
+      content_types, video_count, meeting_preference,
+      preferred_date, preferred_time_slot, additional_request,
+      custom_service,
+    } = body;
 
     if (!name || !email || !phone) {
       return NextResponse.json({ error: '필수 항목을 입력해주세요.' }, { status: 400 });
@@ -14,14 +21,28 @@ export async function POST(req: NextRequest) {
 
     const filteredUrls = (reference_urls as string[] | undefined)?.filter((u: string) => u.trim()) ?? [];
 
+    const extraParts: string[] = [];
+    if (content_types?.length) extraParts.push(`[콘텐츠유형] ${(content_types as string[]).join(', ')}`);
+    if (video_count) extraParts.push(`[제작편수] ${video_count}`);
+    if (meeting_preference) extraParts.push(`[미팅] ${meeting_preference}`);
+    if (preferred_date) extraParts.push(`[희망일정] ${preferred_date} ${preferred_time_slot || ''}`);
+    if (custom_service) extraParts.push(`[기타서비스] ${custom_service}`);
+    if (additional_request) extraParts.push(`[추가요청] ${additional_request}`);
+
+    const combinedMessage = [message, ...extraParts].filter(Boolean).join('\n');
+
     const supabase = createSupabaseAdminClient();
     const { error: dbError } = await supabase.from('inquiries').insert({
       bu_code: CURRENT_BU_CODE,
-      name, email, phone, company, services, project_title: project_title || null, project_scale, deadline, budget_range,
+      name, email, phone, company, services,
+      project_title: project_title || null,
+      project_scale: project_scale || null,
+      deadline: deadline || null,
+      budget_range: budget_range || null,
       description: description || null,
       reference_urls: filteredUrls,
       reference_url: filteredUrls[0] || null,
-      message,
+      message: combinedMessage,
       status: 'new',
     });
 
