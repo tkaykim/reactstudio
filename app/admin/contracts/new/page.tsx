@@ -30,6 +30,7 @@ export default function NewContractPage() {
   const [terms, setTerms] = useState(
     '1. 본 견적의 범위는 상기 명시된 항목에 한합니다.\n2. 선금은 견적 확인 후 7일 이내에 입금해주셔야 합니다.\n3. 잔금은 최종 결과물 납품 후 7일 이내에 입금해주셔야 합니다.\n4. 중도 취소 시 진행된 작업에 대한 비용은 정산됩니다.'
   );
+  const [linkedInquiryId, setLinkedInquiryId] = useState<number | null>(inquiryId ? Number(inquiryId) : null);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [contractStatus, setContractStatus] = useState('draft');
@@ -55,6 +56,9 @@ export default function NewContractPage() {
       const deposit = data.deposit_amount as number;
       if (total > 0 && deposit > 0) {
         setDepositRate(Math.round((deposit / total) * 100));
+      }
+      if (data.inquiry_id) {
+        setLinkedInquiryId(data.inquiry_id as number);
       }
     }
 
@@ -124,7 +128,7 @@ export default function NewContractPage() {
         client_email: clientEmail,
         client_phone: clientPhone || null,
         client_company: clientCompany || null,
-        inquiry_id: inquiryId ? Number(inquiryId) : null,
+        inquiry_id: linkedInquiryId,
         items,
         supply_amount: supplyAmount,
         vat: vatAmount,
@@ -163,7 +167,8 @@ export default function NewContractPage() {
       contractId = await saveContract();
       if (!contractId) return;
     } else {
-      await saveContract();
+      const savedId = await saveContract();
+      if (!savedId) return;
     }
     setSending(true);
     setMessage('');

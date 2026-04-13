@@ -94,11 +94,8 @@ export default function QuotePage() {
   };
 
   const sendQuote = async () => {
-    let quoteId = savedQuoteId;
-    if (!quoteId) {
-      quoteId = await saveQuote();
-      if (!quoteId) return;
-    }
+    const quoteId = await saveQuote();
+    if (!quoteId) return;
     setSending(true);
     setMessage('');
     try {

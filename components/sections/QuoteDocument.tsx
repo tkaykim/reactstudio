@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
 });
 
-function formatKRW(amount: number): string {
-  return amount.toLocaleString('ko-KR') + '원';
+function formatKRW(amount: number | null | undefined): string {
+  return (amount ?? 0).toLocaleString('ko-KR') + '원';
 }
 
 interface QuoteDocumentProps {
@@ -242,7 +242,7 @@ export default function QuoteDocument({ quote, clientName, clientCompany, projec
           <Text style={[styles.tableHeaderText, styles.col3]}>단가</Text>
           <Text style={[styles.tableHeaderText, styles.col4]}>금액</Text>
         </View>
-        {quote.items.map((item: QuoteItem, i: number) => (
+        {(quote.items ?? []).map((item: QuoteItem, i: number) => (
           <View key={i} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
             <Text style={styles.col1}>{item.name}</Text>
             <Text style={[styles.col2, { textAlign: 'center' }]}>{item.qty}</Text>

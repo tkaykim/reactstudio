@@ -77,8 +77,8 @@ interface QuoteEmailData {
   notes?: string | null;
 }
 
-function formatKRW(n: number) {
-  return n.toLocaleString('ko-KR') + '원';
+function formatKRW(n: number | null | undefined) {
+  return (n ?? 0).toLocaleString('ko-KR') + '원';
 }
 
 export async function sendQuoteEmail(
