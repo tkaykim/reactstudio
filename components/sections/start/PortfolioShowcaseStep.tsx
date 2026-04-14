@@ -106,8 +106,7 @@ export default function PortfolioShowcaseStep({ form, portfolioItems }: Portfoli
       </div>
 
       <VideoModal
-        videoId={selectedVideo?.youtube_video_id ?? null}
-        title={selectedVideo?.title}
+        item={selectedVideo}
         onClose={() => setSelectedVideo(null)}
       />
     </motion.div>

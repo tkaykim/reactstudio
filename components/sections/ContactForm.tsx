@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, ChevronLeft, Loader2, Plus, X } from 'lucide-react';
+import { Check, ChevronRight, ChevronLeft, Loader2, Plus, X, Play } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -51,12 +53,45 @@ const initialForm: FormData = {
 
 const STEPS = ['서비스 선택', '프로젝트 상세', '연락처'];
 
+interface ReferenceVideo {
+  videoId: string;
+  title: string;
+  category: string;
+  thumbnailUrl: string;
+}
+
 export default function ContactForm() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [refVideo, setRefVideo] = useState<ReferenceVideo | null>(null);
+
+  useEffect(() => {
+    const videoId = searchParams.get('ref_video');
+    const title = searchParams.get('ref_title');
+    const category = searchParams.get('ref_category');
+    if (!videoId || !title) return;
+
+    const ref: ReferenceVideo = {
+      videoId,
+      title,
+      category: category || '',
+      thumbnailUrl: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+    };
+    setRefVideo(ref);
+
+    const youtubeUrl = `https://youtu.be/${videoId}`;
+    setForm((f) => ({
+      ...f,
+      services: category && serviceOptions.includes(category) && !f.services.includes(category)
+        ? [...f.services, category]
+        : f.services,
+      reference_urls: f.reference_urls.includes(youtubeUrl) ? f.reference_urls : [youtubeUrl, ...f.reference_urls],
+    }));
+  }, [searchParams]);
 
   const toggleService = (svc: string) => {
     setForm((f) => ({
@@ -105,8 +140,58 @@ export default function ContactForm() {
     );
   }
 
+  const removeRefVideo = () => {
+    if (!refVideo) return;
+    const youtubeUrl = `https://youtu.be/${refVideo.videoId}`;
+    setForm((f) => ({
+      ...f,
+      reference_urls: f.reference_urls.filter((u) => u !== youtubeUrl),
+    }));
+    setRefVideo(null);
+  };
+
   return (
     <div>
+      {/* Reference video card */}
+      {refVideo && (
+        <div className="mb-8 p-4 rounded-sm border border-brand/30 bg-brand/5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-brand text-xs font-semibold tracking-wide uppercase">
+              레퍼런스 영상
+            </span>
+            <button
+              onClick={removeRefVideo}
+              className="text-white/30 hover:text-white/60 transition-colors"
+              aria-label="레퍼런스 제거"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative w-24 aspect-video rounded-sm overflow-hidden bg-white/5 shrink-0">
+              <Image
+                src={refVideo.thumbnailUrl}
+                alt={refVideo.title}
+                fill
+                className="object-cover"
+                sizes="96px"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <Play size={14} className="text-white/80" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-medium line-clamp-1">{refVideo.title}</p>
+              {refVideo.category && (
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-sm text-xs bg-white/[0.06] text-white/50 border border-white/10">
+                  {refVideo.category}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-10">
         {STEPS.map((s, i) => (

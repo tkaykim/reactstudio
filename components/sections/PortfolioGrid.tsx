@@ -122,8 +122,7 @@ export default function PortfolioGrid({ items }: PortfolioGridProps) {
       )}
 
       <VideoModal
-        videoId={selectedVideo?.youtube_video_id ?? null}
-        title={selectedVideo?.title}
+        item={selectedVideo}
         onClose={() => setSelectedVideo(null)}
       />
     </>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import ContactForm from '@/components/sections/ContactForm';
 import { Mail, Phone, Instagram, Youtube } from 'lucide-react';
@@ -54,7 +55,9 @@ export default function ContactPage() {
           {/* Right: Form */}
           <div className="lg:col-span-3">
             <div className="p-6 sm:p-8 rounded-2xl bg-white/[0.03] border border-white/10">
-              <ContactForm />
+              <Suspense>
+                <ContactForm />
+              </Suspense>
             </div>
           </div>
         </div>

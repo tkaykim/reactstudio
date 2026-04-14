@@ -11,6 +11,7 @@ export interface PortfolioItem {
   thumbnail_url: string;
   category: string;
   client: string | null;
+  credits: string | null;
   display_order: number;
   is_visible: boolean;
   published_at: string | null;

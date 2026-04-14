@@ -130,6 +130,12 @@ export default function AdminPortfolioPage() {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, client: value } : i)));
   }
 
+  async function updateCredits(id: number, credits: string) {
+    const value = credits.trim() || null;
+    await supabase.from('portfolio_items').update({ credits: value }).eq('id', id);
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, credits: value } : i)));
+  }
+
   async function moveItem(id: number, direction: 'up' | 'down') {
     const currentList = filterCategory === '전체' ? items : items;
     const idx = currentList.findIndex((i) => i.id === id);
@@ -323,6 +329,13 @@ export default function AdminPortfolioPage() {
                     onBlur={(e) => updateClient(item.id, e.target.value)}
                     placeholder="Client"
                     className="px-2 py-1 bg-white/5 border border-white/10 rounded text-white/70 text-xs placeholder:text-white/20 focus:outline-none focus:border-brand w-36"
+                  />
+                  <input
+                    type="text"
+                    defaultValue={item.credits ?? ''}
+                    onBlur={(e) => updateCredits(item.id, e.target.value)}
+                    placeholder="촬영, 편집, 컬러그레이딩 등"
+                    className="px-2 py-1 bg-white/5 border border-white/10 rounded text-white/70 text-xs placeholder:text-white/20 focus:outline-none focus:border-brand w-48"
                   />
                 </div>
               </div>

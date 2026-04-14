@@ -1,7 +1,7 @@
 'use client';
 
+import { Suspense, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import ContactForm from './ContactForm';
 
 export default function CtaSection() {
@@ -28,7 +28,9 @@ export default function CtaSection() {
           </div>
 
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 sm:p-10">
-            <ContactForm />
+            <Suspense>
+              <ContactForm />
+            </Suspense>
           </div>
         </motion.div>
       </div>
