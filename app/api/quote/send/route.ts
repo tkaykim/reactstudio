@@ -6,7 +6,7 @@ import { buildQuoteDocument } from '@/components/sections/QuoteDocument';
 
 export async function POST(req: NextRequest) {
   try {
-    const { quoteId } = await req.json();
+    const { quoteId, ccEmails } = await req.json();
 
     if (!quoteId) {
       return NextResponse.json({ error: '견적서 ID가 필요합니다.' }, { status: 400 });
@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
     const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/quote/${quote.view_token}`;
 
     try {
-      await sendQuoteEmail(inquiry.email, inquiry.name, pdfBuffer, viewUrl, quote, inquiry.company, inquiry.project_title);
+      const cc = ccEmails?.length ? ccEmails : (quote.cc_emails?.length ? quote.cc_emails : undefined);
+      await sendQuoteEmail(inquiry.email, inquiry.name, pdfBuffer, viewUrl, quote, inquiry.company, inquiry.project_title, cc);
     } catch (emailErr) {
       console.error('Email send error:', emailErr);
       const msg = emailErr instanceof Error ? emailErr.message : '알 수 없는 오류';

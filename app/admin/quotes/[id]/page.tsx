@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
-import { Plus, Trash2, Send, Loader2, Eye } from 'lucide-react';
+import { Plus, Trash2, Send, Loader2, Eye, X } from 'lucide-react';
 import type { Inquiry, QuoteItem } from '@/types';
 
 function calcAmounts(items: QuoteItem[]) {
@@ -27,6 +27,8 @@ export default function QuotePage() {
 
   const [clientResponse, setClientResponse] = useState<string | null>(null);
   const [clientResponseNote, setClientResponseNote] = useState<string | null>(null);
+  const [ccEmails, setCcEmails] = useState<string[]>([]);
+  const [ccInput, setCcInput] = useState('');
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -41,6 +43,7 @@ export default function QuotePage() {
         setNotes(data.notes ?? '');
         setClientResponse(data.client_response);
         setClientResponseNote(data.client_response_note);
+        if (Array.isArray(data.cc_emails)) setCcEmails(data.cc_emails);
       }
     });
   }, [inquiryId]);
@@ -72,6 +75,7 @@ export default function QuotePage() {
         total_amount,
         valid_until: validUntil || null,
         notes,
+        cc_emails: ccEmails.length > 0 ? ccEmails : null,
       };
       const method = savedQuoteId ? 'PUT' : 'POST';
       const res = await fetch('/api/quote', {
@@ -102,7 +106,7 @@ export default function QuotePage() {
       const res = await fetch('/api/quote/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quoteId }),
+        body: JSON.stringify({ quoteId, ccEmails }),
       });
       const data = await res.json();
       setMessage(data.success ? '견적서가 고객 이메일로 발송되었습니다.' : '발송 실패: ' + data.error);
@@ -255,6 +259,55 @@ export default function QuotePage() {
             className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand placeholder:text-white/20"
           />
         </div>
+      </div>
+
+      {/* CC emails */}
+      <div className="mb-6">
+        <label className="text-white/40 text-xs mb-1.5 block">참조 (CC)</label>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={ccInput}
+            onChange={(e) => setCcInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const email = ccInput.trim();
+                if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !ccEmails.includes(email)) {
+                  setCcEmails((prev) => [...prev, email]);
+                  setCcInput('');
+                }
+              }
+            }}
+            placeholder="이메일 입력 후 Enter 또는 추가 버튼"
+            className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand placeholder:text-white/20"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const email = ccInput.trim();
+              if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !ccEmails.includes(email)) {
+                setCcEmails((prev) => [...prev, email]);
+                setCcInput('');
+              }
+            }}
+            className="px-3 py-2 bg-white/10 text-white/60 text-sm rounded hover:bg-white/20 transition-colors"
+          >
+            추가
+          </button>
+        </div>
+        {ccEmails.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {ccEmails.map((email) => (
+              <span key={email} className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/10 text-white/70 text-xs rounded-full">
+                {email}
+                <button onClick={() => setCcEmails((prev) => prev.filter((e) => e !== email))} className="text-white/30 hover:text-red-400 transition-colors">
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {message && (

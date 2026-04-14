@@ -88,7 +88,8 @@ export async function sendQuoteEmail(
   viewUrl?: string,
   quote?: QuoteEmailData,
   clientCompany?: string,
-  projectTitle?: string
+  projectTitle?: string,
+  cc?: string[],
 ) {
   const today = new Date().toLocaleDateString('ko-KR');
   const docNumber = quote ? `RS-${String(quote.id).padStart(6, '0')}` : '';
@@ -205,6 +206,7 @@ export async function sendQuoteEmail(
   await transporter.sendMail({
     from: `"React Studio" <${process.env.SMTP_USER}>`,
     to,
+    ...(cc?.length ? { cc } : {}),
     subject: `[React Studio] 견적서${projectTitle ? ` - ${projectTitle}` : ''}${docNumber ? ` (${docNumber})` : ''}`,
     html: quoteBody,
     attachments: [

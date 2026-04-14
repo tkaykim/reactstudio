@@ -6,7 +6,7 @@ import { buildContractDocument } from '@/components/sections/ContractDocument';
 
 export async function POST(req: NextRequest) {
   try {
-    const { contractId } = await req.json();
+    const { contractId, ccEmails } = await req.json();
 
     if (!contractId) {
       return NextResponse.json({ error: '견적서 ID가 필요합니다.' }, { status: 400 });
@@ -44,9 +44,12 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+      const cc = ccEmails?.length ? ccEmails : (contract.cc_emails?.length ? contract.cc_emails : undefined);
+
       await transporter.sendMail({
         from: `"React Studio" <${process.env.SMTP_USER}>`,
         to: contract.client_email,
+        ...(cc ? { cc } : {}),
         subject: `[React Studio] 견적서 전달 - ${contract.title} (${docNumber})`,
         html: `
           <div style="max-width:600px;margin:0 auto;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111">
