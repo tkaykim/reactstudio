@@ -43,7 +43,6 @@ export default function QuotePage() {
         setNotes(data.notes ?? '');
         setClientResponse(data.client_response);
         setClientResponseNote(data.client_response_note);
-        if (Array.isArray(data.cc_emails)) setCcEmails(data.cc_emails);
       }
     });
   }, [inquiryId]);
@@ -75,7 +74,6 @@ export default function QuotePage() {
         total_amount,
         valid_until: validUntil || null,
         notes,
-        cc_emails: ccEmails.length > 0 ? ccEmails : null,
       };
       const method = savedQuoteId ? 'PUT' : 'POST';
       const res = await fetch('/api/quote', {

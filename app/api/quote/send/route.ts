@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/quote/${quote.view_token}`;
 
     try {
-      const cc = ccEmails?.length ? ccEmails : (quote.cc_emails?.length ? quote.cc_emails : undefined);
+      const cc = ccEmails?.length ? ccEmails : undefined;
       await sendQuoteEmail(inquiry.email, inquiry.name, pdfBuffer, viewUrl, quote, inquiry.company, inquiry.project_title, cc);
     } catch (emailErr) {
       console.error('Email send error:', emailErr);

@@ -6,14 +6,13 @@ import { randomUUID } from 'crypto';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { inquiry_id, items, supply_amount, vat, total_amount, valid_until, notes, cc_emails } = body;
+    const { inquiry_id, items, supply_amount, vat, total_amount, valid_until, notes } = body;
 
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from('quotes')
       .insert({
         bu_code: CURRENT_BU_CODE, inquiry_id, items, supply_amount, vat, total_amount, valid_until, notes,
-        cc_emails: cc_emails || null,
         status: 'draft',
         view_token: randomUUID(),
       })
@@ -30,7 +29,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, cc_emails, ...updates } = body;
 
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase

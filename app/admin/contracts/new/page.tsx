@@ -62,9 +62,6 @@ export default function NewContractPage() {
       if (data.inquiry_id) {
         setLinkedInquiryId(data.inquiry_id as number);
       }
-      if (Array.isArray(data.cc_emails)) {
-        setCcEmails(data.cc_emails as string[]);
-      }
     }
 
     if (editId) {
@@ -143,7 +140,6 @@ export default function NewContractPage() {
         start_date: startDate || null,
         end_date: endDate || null,
         terms,
-        cc_emails: ccEmails.length > 0 ? ccEmails : null,
       };
 
       const res = await fetch('/api/contract', {

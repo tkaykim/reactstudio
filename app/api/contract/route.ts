@@ -21,7 +21,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const { cc_emails, ...body } = await req.json();
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from('contracts')
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, cc_emails, ...updates } = body;
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from('contracts')

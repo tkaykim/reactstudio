@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const cc = ccEmails?.length ? ccEmails : (contract.cc_emails?.length ? contract.cc_emails : undefined);
+      const cc = ccEmails?.length ? ccEmails : undefined;
 
       await transporter.sendMail({
         from: `"React Studio" <${process.env.SMTP_USER}>`,
