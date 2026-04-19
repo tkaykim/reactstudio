@@ -17,11 +17,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reactstudio.vercel.
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
-    template: '%s | React Studio',
+    default: 'React Studio(리액트 스튜디오) | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
+    template: '%s | React Studio(리액트 스튜디오)',
   },
   description:
-    '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱으로 — React Studio',
+    '리액트 스튜디오(React Studio) — 뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱.',
   keywords: [
     '뮤직비디오 제작',
     '댄스비디오 촬영',
@@ -37,6 +37,9 @@ export const metadata: Metadata = {
     '영상 견적',
     '커머스 영상',
     '광고 영상 제작',
+    '리액트 스튜디오',
+    'React Studio',
+    '리액트스튜디오',
   ],
   alternates: {
     canonical: '/',
@@ -45,24 +48,24 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'ko_KR',
     url: siteUrl,
-    siteName: 'React Studio',
-    title: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
+    siteName: 'React Studio(리액트 스튜디오)',
+    title: 'React Studio(리액트 스튜디오) | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
     description:
-      '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작.',
+      '리액트 스튜디오(React Studio) — 뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'React Studio — 영상 프로덕션',
+        alt: 'React Studio(리액트 스튜디오) — 영상 프로덕션',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
+    title: 'React Studio(리액트 스튜디오) | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
     description:
-      '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션.',
+      '리액트 스튜디오(React Studio) — 뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션.',
     images: ['/og-image.png'],
   },
   robots: {
@@ -87,11 +90,12 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'VideoProductionCompany',
-  name: 'React Studio',
+  name: 'React Studio(리액트 스튜디오)',
+  alternateName: '리액트 스튜디오',
   url: siteUrl,
   logo: `${siteUrl}/logo.svg`,
   description:
-    '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱.',
+    '리액트 스튜디오(React Studio) — 뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱.',
   address: {
     '@type': 'PostalAddress',
     addressCountry: 'KR',

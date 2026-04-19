@@ -6,7 +6,7 @@ import { Mail, Phone, Instagram, Youtube } from 'lucide-react';
 export const metadata: Metadata = {
   title: '문의/견적 — 영상제작 프로젝트 상담',
   description:
-    '뮤직비디오, 댄스비디오, 웹예능 등 영상제작 프로젝트를 문의하세요. 예산과 일정에 맞춘 맞춤 견적을 무료로 받아보실 수 있습니다 — React Studio',
+    '리액트 스튜디오(React Studio) — 뮤직비디오, 댄스비디오, 웹예능 등 영상제작 프로젝트를 문의하세요. 예산과 일정에 맞춘 맞춤 견적을 무료로 받아보실 수 있습니다.',
   alternates: { canonical: '/contact' },
 };
 
