@@ -5,8 +5,10 @@ import type { PortfolioItem } from '@/types';
 import { CURRENT_BU_CODE } from '@/types';
 
 export const metadata: Metadata = {
-  title: '프로젝트 시작하기',
-  description: '영상 제작 프로젝트를 시작하세요. 맞춤 상담부터 포트폴리오 매칭까지 — React Studio',
+  title: '프로젝트 시작하기 — 맞춤 영상제작 상담',
+  description:
+    '뮤직비디오, 댄스비디오, 웹예능 등 영상 제작 프로젝트를 시작하세요. 예산에 맞춘 유연한 제작, 맞춤 상담부터 포트폴리오 매칭까지 — React Studio',
+  alternates: { canonical: '/start' },
 };
 
 export const revalidate = 3600;

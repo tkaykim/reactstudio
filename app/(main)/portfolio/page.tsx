@@ -6,8 +6,10 @@ import type { PortfolioItem } from '@/types';
 import { CURRENT_BU_CODE } from '@/types';
 
 export const metadata: Metadata = {
-  title: 'Works',
-  description: 'Music Videos, Dance Films, Live Clips, Web Content by React Studio',
+  title: '포트폴리오 — 뮤직비디오·댄스비디오·퍼포먼스 영상 작업물',
+  description:
+    'React Studio가 제작한 뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠를 확인하세요. K-pop 아티스트와 함께한 다양한 영상 포트폴리오.',
+  alternates: { canonical: '/portfolio' },
 };
 
 export const revalidate = 3600;

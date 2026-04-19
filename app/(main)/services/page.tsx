@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { Music, Users, Star, Tv, ShoppingBag, ChevronRight } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '서비스',
-  description: '뮤직비디오, 댄스비디오/퍼포먼스, 라이브 클립, 웹예능, 광고·커머스 영상제작 서비스',
+  title: '영상제작 서비스 — 뮤직비디오·댄스비디오·웹예능·광고',
+  description:
+    '뮤직비디오, 댄스비디오/퍼포먼스, 라이브 클립, 웹예능, 광고·커머스 영상까지. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱 서비스 — React Studio',
+  alternates: { canonical: '/services' },
 };
 
 const services = [

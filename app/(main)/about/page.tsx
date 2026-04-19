@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { MessageCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '어바웃',
-  description: 'React Studio — 소통으로 완성하는 영상제작',
+  title: '소개 — 소통으로 완성하는 영상 프로덕션',
+  description:
+    'React Studio는 뮤직비디오, 댄스비디오, 퍼포먼스 영상 전문 프로덕션입니다. 예산에 따라 유연하게 제작하며, 기획부터 납품까지 소통 중심의 제작 프로세스를 운영합니다.',
+  alternates: { canonical: '/about' },
 };
 
 export default function AboutPage() {

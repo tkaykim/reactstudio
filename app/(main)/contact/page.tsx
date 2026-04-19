@@ -4,8 +4,10 @@ import ContactForm from '@/components/sections/ContactForm';
 import { Mail, Phone, Instagram, Youtube } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: '문의/견적',
-  description: '프로젝트 문의 및 견적 신청 — React Studio',
+  title: '문의/견적 — 영상제작 프로젝트 상담',
+  description:
+    '뮤직비디오, 댄스비디오, 웹예능 등 영상제작 프로젝트를 문의하세요. 예산과 일정에 맞춘 맞춤 견적을 무료로 받아보실 수 있습니다 — React Studio',
+  alternates: { canonical: '/contact' },
 };
 
 export default function ContactPage() {

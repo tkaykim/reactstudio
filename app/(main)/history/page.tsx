@@ -4,8 +4,10 @@ import { CURRENT_BU_CODE } from '@/types';
 import HistoryClient from './HistoryClient';
 
 export const metadata: Metadata = {
-  title: '프로젝트 이력',
-  description: 'React Studio의 영상 제작 이력을 확인하세요.',
+  title: '프로젝트 이력 — 뮤직비디오·댄스비디오 제작 실적',
+  description:
+    'React Studio가 제작한 뮤직비디오, 댄스비디오, 퍼포먼스 영상, 웹예능 콘텐츠의 전체 프로젝트 이력을 확인하세요.',
+  alternates: { canonical: '/history' },
 };
 
 export const revalidate = 3600;

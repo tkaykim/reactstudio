@@ -12,20 +12,123 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reactstudio.vercel.app';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·라이브 클립 제작',
+    default: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
     template: '%s | React Studio',
   },
   description:
-    'React Studio는 뮤직비디오, 댄스비디오/퍼포먼스, 라이브 클립, 웹예능, 광고·커머스 영상을 제작하는 전문 프로덕션입니다.',
-  keywords: ['뮤직비디오', '댄스비디오', '퍼포먼스', '라이브 클립', '웹예능', '광고', '영상제작', '프로덕션'],
+    '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱으로 — React Studio',
+  keywords: [
+    '뮤직비디오 제작',
+    '댄스비디오 촬영',
+    '퍼포먼스 영상',
+    '라이브 클립',
+    '웹예능 제작',
+    '영상 프로덕션',
+    '영상제작 업체',
+    '뮤직비디오 촬영',
+    'K-pop 뮤직비디오',
+    '댄스 필름',
+    '안무 영상',
+    '영상 견적',
+    '커머스 영상',
+    '광고 영상 제작',
+  ],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://reactstudio.vercel.app',
+    url: siteUrl,
     siteName: 'React Studio',
+    title: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
+    description:
+      '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'React Studio — 영상 프로덕션',
+      },
+    ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'React Studio | 뮤직비디오·댄스비디오·퍼포먼스·웹예능 영상 제작',
+    description:
+      '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoProductionCompany',
+  name: 'React Studio',
+  url: siteUrl,
+  logo: `${siteUrl}/logo.svg`,
+  description:
+    '뮤직비디오, 댄스비디오, 퍼포먼스 영상, 라이브 클립, 웹예능 콘텐츠 전문 프로덕션. 예산에 맞춘 유연한 제작, 기획부터 납품까지 원스톱.',
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: 'KR',
+  },
+  sameAs: [],
+  knowsAbout: [
+    '뮤직비디오 제작',
+    '댄스비디오 촬영',
+    '퍼포먼스 영상',
+    '라이브 클립',
+    '웹예능 콘텐츠',
+    '광고 영상',
+    '커머스 영상',
+  ],
+  makesOffer: [
+    {
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'Service',
+        name: '뮤직비디오 제작',
+        description: '아티스트의 음악을 시각적 언어로 재해석하는 뮤직비디오 제작 서비스',
+      },
+    },
+    {
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'Service',
+        name: '댄스비디오/퍼포먼스 촬영',
+        description: '멀티캠 셋업으로 역동적인 안무와 퍼포먼스를 포착하는 영상 제작',
+      },
+    },
+    {
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'Service',
+        name: '웹예능 콘텐츠 제작',
+        description: '유튜브, 틱톡 등 플랫폼에 최적화된 숏폼·롱폼 웹 예능 콘텐츠 기획·제작',
+      },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -35,6 +138,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
