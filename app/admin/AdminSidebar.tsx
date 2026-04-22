@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, FileText, Film, FileSignature, Users, LogOut, Wallet, UserPlus } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, FileText, Film, FileSignature, Users, LogOut, Wallet, UserPlus, KeyRound } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import Image from 'next/image';
 import type { AdminRole, AdminUser } from '@/lib/admin-auth';
@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { href: '/admin/portfolio', icon: Film, label: '포트폴리오' },
   { href: '/admin/clients', icon: Users, label: '클라이언트' },
   { href: '/admin/signup-requests', icon: UserPlus, label: '회원가입 신청', headOnly: true },
+  { href: '/admin/account', icon: KeyRound, label: '비밀번호 변경' },
 ];
 
 export default function AdminSidebar({ user }: { user: AdminUser }) {
