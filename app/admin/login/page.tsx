@@ -45,19 +45,20 @@ export default function AdminLoginPage() {
       .eq('id', authData.user.id)
       .single();
 
-    if (
-      !appUser ||
-      appUser.status !== 'active' ||
-      !ALLOWED_BU_CODES.includes(appUser.bu_code) ||
-      !ALLOWED_ROLES.includes(appUser.role)
-    ) {
+    if (!appUser || appUser.status !== 'active') {
       await supabase.auth.signOut();
-      setError('관리자 권한이 없습니다. 담당자에게 문의하세요.');
+      setError(
+        appUser?.status === 'pending'
+          ? '가입 신청이 아직 승인되지 않았습니다.'
+          : '비활성 계정입니다. 담당자에게 문의하세요.'
+      );
       setLoading(false);
       return;
     }
 
-    router.push('/admin');
+    const isAdmin =
+      ALLOWED_BU_CODES.includes(appUser.bu_code) && ALLOWED_ROLES.includes(appUser.role);
+    router.push(isAdmin ? '/admin' : '/me/earnings');
     router.refresh();
   };
 

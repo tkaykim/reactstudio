@@ -63,6 +63,20 @@ export async function requireAdmin(): Promise<AdminUser> {
   const user = await getAdminUser();
   if (!user) {
     const supabase = await createSupabaseServerClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    // 로그인은 되어 있지만 관리자 권한이 없는 경우 → 개인 페이지로
+    if (authUser) {
+      const { data: appUser } = await supabase
+        .from('app_users')
+        .select('status')
+        .eq('id', authUser.id)
+        .maybeSingle();
+      if (appUser && appUser.status === 'active') {
+        redirect('/me/earnings');
+      }
+    }
     await supabase.auth.signOut();
     redirect('/admin/login?error=unauthorized');
   }
