@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: '/admin/payments', destination: '/admin/finance/payables', permanent: false },
+      { source: '/admin/payments/new', destination: '/admin/finance/payables/new', permanent: false },
+      { source: '/admin/payments/:id', destination: '/admin/finance/payables/:id', permanent: false },
+      { source: '/admin/payments/by-project', destination: '/admin/finance/by-project', permanent: false },
+      { source: '/admin/payments/by-payee', destination: '/admin/finance/by-person', permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

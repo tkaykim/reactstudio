@@ -51,7 +51,7 @@ export default function PaymentActions({
         alert(err.error ?? '실패');
         return;
       }
-      router.push('/admin/payments');
+      router.push('/admin/finance/payables');
       router.refresh();
     } finally {
       setActing(null);

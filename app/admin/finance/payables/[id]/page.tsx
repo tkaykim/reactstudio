@@ -28,7 +28,7 @@ export default async function PaymentDetailPage({
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black text-white">지급 상세</h1>
         <Link
-          href="/admin/payments"
+          href="/admin/finance/payables"
           className="text-white/50 hover:text-white text-xs"
         >
           ← 목록

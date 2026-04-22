@@ -37,7 +37,7 @@ const statusColors: Record<FinancialStatus, string> = {
 
 const PAGE_SIZE = 20;
 
-export default function PaymentsClient() {
+export default function PayablesClient() {
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<'all' | FinancialStatus>('all');
@@ -303,7 +303,7 @@ export default function PaymentsClient() {
                           </button>
                         )}
                         <Link
-                          href={`/admin/payments/${r.id}`}
+                          href={`/admin/finance/payables/${r.id}`}
                           className="text-brand text-xs hover:underline"
                         >
                           상세
