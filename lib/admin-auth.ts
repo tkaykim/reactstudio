@@ -79,11 +79,11 @@ export function canEditBu(user: AdminUser, bu: BuCode): boolean {
 }
 
 export function canManagePayments(user: AdminUser): boolean {
-  return user.role === 'admin' || user.role === 'leader';
+  return user.bu_code === 'HEAD';
 }
 
 export function canApprovePayments(user: AdminUser): boolean {
-  return user.role === 'admin';
+  return user.bu_code === 'HEAD';
 }
 
 export function canManageSignups(user: AdminUser): boolean {
