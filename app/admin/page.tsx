@@ -1,20 +1,28 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { MessageSquare, Clock, CheckCircle, TrendingUp } from 'lucide-react';
-import { CURRENT_BU_CODE } from '@/types';
+import { requireAdmin, canViewAll } from '@/lib/admin-auth';
+import type { AdminUser } from '@/lib/admin-auth';
 
-async function getDashboardStats() {
+async function getDashboardStats(user: AdminUser) {
   try {
     const supabase = await createSupabaseServerClient();
+    const scoped = !canViewAll(user);
 
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
+    const base = () => {
+      let q = supabase.from('inquiries').select('*', { count: 'exact', head: true });
+      if (scoped) q = q.eq('bu_code', user.bu_code);
+      return q;
+    };
+
     const [{ count: totalNew }, { count: totalInProgress }, { count: thisMonth }, { count: totalDone }] =
       await Promise.all([
-        supabase.from('inquiries').select('*', { count: 'exact', head: true }).eq('bu_code', CURRENT_BU_CODE).eq('status', 'new'),
-        supabase.from('inquiries').select('*', { count: 'exact', head: true }).eq('bu_code', CURRENT_BU_CODE).eq('status', 'in_progress'),
-        supabase.from('inquiries').select('*', { count: 'exact', head: true }).eq('bu_code', CURRENT_BU_CODE).gte('created_at', monthStart),
-        supabase.from('inquiries').select('*', { count: 'exact', head: true }).eq('bu_code', CURRENT_BU_CODE).eq('status', 'done'),
+        base().eq('status', 'new'),
+        base().eq('status', 'in_progress'),
+        base().gte('created_at', monthStart),
+        base().eq('status', 'done'),
       ]);
 
     return { totalNew, totalInProgress, thisMonth, totalDone };
@@ -23,15 +31,16 @@ async function getDashboardStats() {
   }
 }
 
-async function getRecentInquiries() {
+async function getRecentInquiries(user: AdminUser) {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data } = await supabase
+    let q = supabase
       .from('inquiries')
-      .select('id, name, company, services, status, created_at')
-      .eq('bu_code', CURRENT_BU_CODE)
+      .select('id, name, company, services, status, created_at, bu_code')
       .order('created_at', { ascending: false })
       .limit(5);
+    if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+    const { data } = await q;
     return data ?? [];
   } catch {
     return [];
@@ -50,8 +59,9 @@ const statusLabels: Record<string, string> = {
 };
 
 export default async function AdminDashboard() {
-  const stats = await getDashboardStats();
-  const recent = await getRecentInquiries();
+  const user = await requireAdmin();
+  const stats = await getDashboardStats(user);
+  const recent = await getRecentInquiries(user);
 
   const cards = [
     { icon: MessageSquare, label: '미처리 문의', value: stats.totalNew ?? 0, color: 'text-brand' },

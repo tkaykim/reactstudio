@@ -15,7 +15,8 @@ import {
   GripVertical,
 } from 'lucide-react';
 import type { PortfolioItem, ServiceCategory } from '@/types';
-import { SERVICE_CATEGORIES, CURRENT_BU_CODE } from '@/types';
+import { SERVICE_CATEGORIES } from '@/types';
+import { useAdminUser } from '@/lib/use-admin-user';
 
 const categories = SERVICE_CATEGORIES.filter((c) => c !== '전체');
 
@@ -30,22 +31,24 @@ export default function AdminPortfolioPage() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   const supabase = createSupabaseBrowserClient();
+  const { user, canViewAll } = useAdminUser();
 
   const loadItems = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
-    const { data } = await supabase
+    let q = supabase
       .from('portfolio_items')
       .select('*')
-      .eq('bu_code', CURRENT_BU_CODE)
       .order('display_order', { ascending: true });
+    if (!canViewAll) q = q.eq('bu_code', user.bu_code);
+    const { data } = await q;
     setItems(data ?? []);
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, user, canViewAll]);
 
   useEffect(() => {
-    loadItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (user) loadItems();
+  }, [user, loadItems]);
 
   const filteredItems =
     filterCategory === '전체'
@@ -67,10 +70,11 @@ export default function AdminPortfolioPage() {
         return;
       }
 
+      if (!user) return;
       const { data: existing } = await supabase
         .from('portfolio_items')
         .select('id')
-        .eq('bu_code', CURRENT_BU_CODE)
+        .eq('bu_code', user.bu_code)
         .eq('youtube_video_id', info.videoId)
         .single();
 
@@ -83,7 +87,7 @@ export default function AdminPortfolioPage() {
       const maxOrder = items.reduce((max, i) => Math.max(max, i.display_order), 0);
 
       await supabase.from('portfolio_items').insert({
-        bu_code: CURRENT_BU_CODE,
+        bu_code: user.bu_code,
         youtube_video_id: info.videoId,
         youtube_playlist_id: null,
         title: info.title,
