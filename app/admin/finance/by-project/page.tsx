@@ -49,7 +49,7 @@ export default async function PaymentsByProjectPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black text-white">프로젝트별 지급 집계</h1>
-        <Link href="/admin/payments" className="text-white/50 hover:text-white text-xs">
+        <Link href="/admin/finance/payables" className="text-white/50 hover:text-white text-xs">
           ← 목록
         </Link>
       </div>
@@ -79,7 +79,7 @@ export default async function PaymentsByProjectPage() {
                 <td className="px-3 py-3">
                   {r.project_id && (
                     <Link
-                      href={`/admin/payments?project_id=${r.project_id}`}
+                      href={`/admin/finance/payables?project_id=${r.project_id}`}
                       className="text-brand text-xs hover:underline"
                     >
                       내역 보기

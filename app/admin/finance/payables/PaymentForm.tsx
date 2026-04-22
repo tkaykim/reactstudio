@@ -129,7 +129,7 @@ export default function PaymentForm({
         alert(err.error ?? '저장 실패');
         return;
       }
-      router.push('/admin/payments');
+      router.push('/admin/finance/payables');
       router.refresh();
     } finally {
       setSubmitting(false);
