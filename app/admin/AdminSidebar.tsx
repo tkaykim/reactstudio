@@ -20,7 +20,7 @@ const navItems: NavItem[] = [
   { href: '/admin/inquiries', icon: MessageSquare, label: '문의 관리' },
   { href: '/admin/contracts', icon: FileSignature, label: '견적 관리' },
   { href: '/admin/agreements', icon: FileText, label: '계약 관리' },
-  { href: '/admin/payments', icon: Wallet, label: '지급 관리', roles: ['admin', 'leader'] },
+  { href: '/admin/payments', icon: Wallet, label: '지급 관리', headOnly: true },
   { href: '/admin/portfolio', icon: Film, label: '포트폴리오' },
   { href: '/admin/clients', icon: Users, label: '클라이언트' },
   { href: '/admin/signup-requests', icon: UserPlus, label: '회원가입 신청', headOnly: true },
