@@ -159,6 +159,49 @@ export interface SiteSetting {
   value: string;
 }
 
+export type FinancialKind = 'revenue' | 'expense';
+export type FinancialStatus = 'planned' | 'paid' | 'canceled';
+export type PaymentMethod = 'vat_included' | 'tax_free' | 'withholding' | 'actual_payment';
+
+export interface FinancialEntry {
+  id: number;
+  project_id: number | null;
+  bu_code: BuCode;
+  kind: FinancialKind;
+  category: string | null;
+  name: string | null;
+  amount: number | null;
+  actual_amount: number | null;
+  occurred_at: string | null;
+  due_date: string | null;
+  paid_at: string | null;
+  status: FinancialStatus;
+  payment_method: PaymentMethod | null;
+  partner_id: number | null;
+  payee_app_user_id: string | null;
+  share_rate: number | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  payment_ref: string | null;
+  memo: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  vat_included: '부가세 포함',
+  tax_free: '면세',
+  withholding: '원천징수 (3.3%)',
+  actual_payment: '실지급',
+};
+
+export const FINANCIAL_STATUS_LABELS: Record<FinancialStatus, string> = {
+  planned: '지급예정',
+  paid: '지급완료',
+  canceled: '취소',
+};
+
 export type ServiceCategory =
   | '전체'
   | '뮤직비디오'

@@ -1,22 +1,12 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
-import { CURRENT_BU_CODE } from '@/types';
+import { requireAdmin, canViewAll } from '@/lib/admin-auth';
 import InquiriesClient from './InquiriesClient';
 
-async function getInquiries() {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data } = await supabase
-      .from('inquiries')
-      .select('*')
-      .eq('bu_code', CURRENT_BU_CODE)
-      .order('created_at', { ascending: false });
-    return data ?? [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function InquiriesPage() {
-  const inquiries = await getInquiries();
-  return <InquiriesClient initialInquiries={inquiries} />;
+  const user = await requireAdmin();
+  const supabase = await createSupabaseServerClient();
+  let q = supabase.from('inquiries').select('*').order('created_at', { ascending: false });
+  if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+  const { data } = await q;
+  return <InquiriesClient initialInquiries={data ?? []} />;
 }

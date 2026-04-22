@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase';
-import { CURRENT_BU_CODE } from '@/types';
+import { apiRequireAdmin, canViewAll } from '@/lib/admin-auth';
 import { randomUUID } from 'crypto';
 
 export async function GET() {
+  const guard = await apiRequireAdmin();
+  if (guard instanceof NextResponse) return guard;
+  const { user } = guard;
+
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
+    let q = supabase
       .from('contracts')
       .select('*, inquiries(name, company)')
-      .eq('bu_code', CURRENT_BU_CODE)
       .order('created_at', { ascending: false });
+    if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+    const { data, error } = await q;
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ contracts: data });
@@ -20,12 +25,16 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const guard = await apiRequireAdmin();
+  if (guard instanceof NextResponse) return guard;
+  const { user } = guard;
+
   try {
-    const { cc_emails, ...body } = await req.json();
+    const { cc_emails, bu_code: _ignored, ...body } = await req.json();
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from('contracts')
-      .insert({ ...body, bu_code: CURRENT_BU_CODE, sign_token: randomUUID() })
+      .insert({ ...body, bu_code: user.bu_code, sign_token: randomUUID() })
       .select()
       .single();
 
@@ -37,17 +46,20 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const guard = await apiRequireAdmin();
+  if (guard instanceof NextResponse) return guard;
+  const { user } = guard;
+
   try {
     const body = await req.json();
-    const { id, cc_emails, ...updates } = body;
+    const { id, cc_emails, bu_code: _ignored, ...updates } = body;
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
+    let q = supabase
       .from('contracts')
       .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('bu_code', CURRENT_BU_CODE)
-      .select()
-      .single();
+      .eq('id', id);
+    if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+    const { data, error } = await q.select().single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ contract: data });

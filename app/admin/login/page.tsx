@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 
 const ALLOWED_BU_CODES = ['REACT', 'HEAD'];
+const ALLOWED_ROLES = ['admin', 'leader', 'manager'];
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -19,7 +21,7 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (searchParams.get('error') === 'unauthorized') {
-      setError('접근 권한이 없습니다. REACT 또는 HEAD 소속만 이용 가능합니다.');
+      setError('관리자 권한이 없습니다. 담당자에게 문의하세요.');
     }
   }, [searchParams]);
 
@@ -39,13 +41,18 @@ export default function AdminLoginPage() {
 
     const { data: appUser } = await supabase
       .from('app_users')
-      .select('bu_code')
+      .select('bu_code, role, status')
       .eq('id', authData.user.id)
       .single();
 
-    if (!appUser || !ALLOWED_BU_CODES.includes(appUser.bu_code)) {
+    if (
+      !appUser ||
+      appUser.status !== 'active' ||
+      !ALLOWED_BU_CODES.includes(appUser.bu_code) ||
+      !ALLOWED_ROLES.includes(appUser.role)
+    ) {
       await supabase.auth.signOut();
-      setError('접근 권한이 없습니다. REACT 또는 HEAD 소속만 이용 가능합니다.');
+      setError('관리자 권한이 없습니다. 담당자에게 문의하세요.');
       setLoading(false);
       return;
     }
@@ -106,6 +113,13 @@ export default function AdminLoginPage() {
           >
             {loading ? <><Loader2 size={16} className="animate-spin" /> 로그인 중...</> : '로그인'}
           </button>
+
+          <p className="text-center text-white/40 text-xs">
+            계정이 없나요?{' '}
+            <Link href="/admin/signup" className="text-brand hover:underline">
+              회원가입 신청
+            </Link>
+          </p>
         </form>
       </div>
     </div>

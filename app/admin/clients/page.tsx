@@ -16,7 +16,7 @@ import {
   Link as LinkIcon,
 } from 'lucide-react';
 import type { Client } from '@/types';
-import { CURRENT_BU_CODE } from '@/types';
+import { useAdminUser } from '@/lib/use-admin-user';
 
 type LogoInputMode = 'upload' | 'url';
 
@@ -34,22 +34,21 @@ export default function AdminClientsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const supabase = createSupabaseBrowserClient();
+  const { user, canViewAll } = useAdminUser();
 
   const loadItems = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('clients')
-      .select('*')
-      .eq('bu_code', CURRENT_BU_CODE)
-      .order('display_order', { ascending: true });
+    let q = supabase.from('clients').select('*').order('display_order', { ascending: true });
+    if (!canViewAll) q = q.eq('bu_code', user.bu_code);
+    const { data } = await q;
     setItems(data ?? []);
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, user, canViewAll]);
 
   useEffect(() => {
-    loadItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (user) loadItems();
+  }, [user, loadItems]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -118,8 +117,13 @@ export default function AdminClientsPage() {
 
       const maxOrder = items.reduce((max, i) => Math.max(max, i.display_order), 0);
 
+      if (!user) {
+        setAddResult('세션이 만료되었습니다.');
+        setAdding(false);
+        return;
+      }
       const { error } = await supabase.from('clients').insert({
-        bu_code: CURRENT_BU_CODE,
+        bu_code: user.bu_code,
         name: clientName.trim(),
         logo_url: finalLogoUrl,
         is_visible: true,
