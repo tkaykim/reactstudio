@@ -54,9 +54,7 @@ export default function AdminSidebar({ user }: { user: AdminUser }) {
       {/* User */}
       <div className="px-5 py-3 border-b border-white/5">
         <p className="text-white text-sm font-medium truncate">{user.name}</p>
-        <p className="text-white/40 text-xs mt-0.5">
-          {user.bu_code} · {user.role}
-        </p>
+        <p className="text-white/40 text-xs mt-0.5">{user.role}</p>
       </div>
 
       {/* Nav */}

@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import type { PortfolioItem, ServiceCategory } from '@/types';
 import { SERVICE_CATEGORIES } from '@/types';
-import { useAdminUser } from '@/lib/use-admin-user';
+
+const ADMIN_BU = 'REACT';
 
 const categories = SERVICE_CATEGORIES.filter((c) => c !== '전체');
 
@@ -31,24 +32,21 @@ export default function AdminPortfolioPage() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   const supabase = createSupabaseBrowserClient();
-  const { user, canViewAll } = useAdminUser();
 
   const loadItems = useCallback(async () => {
-    if (!user) return;
     setLoading(true);
-    let q = supabase
+    const { data } = await supabase
       .from('portfolio_items')
       .select('*')
+      .eq('bu_code', ADMIN_BU)
       .order('display_order', { ascending: true });
-    if (!canViewAll) q = q.eq('bu_code', user.bu_code);
-    const { data } = await q;
     setItems(data ?? []);
     setLoading(false);
-  }, [supabase, user, canViewAll]);
+  }, [supabase]);
 
   useEffect(() => {
-    if (user) loadItems();
-  }, [user, loadItems]);
+    loadItems();
+  }, [loadItems]);
 
   const filteredItems =
     filterCategory === '전체'
@@ -70,11 +68,10 @@ export default function AdminPortfolioPage() {
         return;
       }
 
-      if (!user) return;
       const { data: existing } = await supabase
         .from('portfolio_items')
         .select('id')
-        .eq('bu_code', user.bu_code)
+        .eq('bu_code', ADMIN_BU)
         .eq('youtube_video_id', info.videoId)
         .single();
 
@@ -87,7 +84,7 @@ export default function AdminPortfolioPage() {
       const maxOrder = items.reduce((max, i) => Math.max(max, i.display_order), 0);
 
       await supabase.from('portfolio_items').insert({
-        bu_code: user.bu_code,
+        bu_code: ADMIN_BU,
         youtube_video_id: info.videoId,
         youtube_playlist_id: null,
         title: info.title,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase';
-import { apiRequireAdmin, canViewAll, canManagePayments } from '@/lib/admin-auth';
+import { apiRequireAdmin, canManagePayments, ADMIN_BU } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
   const guard = await apiRequireAdmin();
@@ -27,10 +27,11 @@ export async function GET(req: NextRequest) {
        payee:app_users!financial_entries_payee_app_user_id_fkey(name, email)`
     )
     .eq('kind', 'expense')
+    .eq('bu_code', ADMIN_BU)
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
 
-  if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+  void user;
   if (status) q = q.eq('status', status);
   if (projectId) q = q.eq('project_id', Number(projectId));
   if (from) q = q.gte('due_date', from);
@@ -57,7 +58,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       project_id,
-      bu_code,
       category,
       name,
       amount,
@@ -69,17 +69,12 @@ export async function POST(req: NextRequest) {
       memo,
     } = body;
 
-    const targetBu = bu_code ?? user.bu_code;
-    if (!canViewAll(user) && targetBu !== user.bu_code) {
-      return NextResponse.json({ error: '해당 BU로 등록할 권한이 없습니다.' }, { status: 403 });
-    }
-
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from('financial_entries')
       .insert({
         project_id: project_id ?? null,
-        bu_code: targetBu,
+        bu_code: ADMIN_BU,
         kind: 'expense',
         status: 'planned',
         category: category ?? null,

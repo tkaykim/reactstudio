@@ -8,7 +8,7 @@ export default async function NewPaymentPage() {
   return (
     <div>
       <h1 className="text-2xl font-black text-white mb-6">새 지급 등록</h1>
-      <PaymentForm mode="create" defaultBuCode={user.bu_code} />
+      <PaymentForm mode="create" />
     </div>
   );
 }

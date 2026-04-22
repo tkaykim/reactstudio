@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { requireAdmin, canManagePayments, canViewAll } from '@/lib/admin-auth';
+import { requireAdmin, canManagePayments, ADMIN_BU } from '@/lib/admin-auth';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
 type Row = {
   project_id: number | null;
-  bu_code: string;
   status: string;
   amount: number | null;
   actual_amount: number | null;
@@ -17,25 +16,23 @@ export default async function PaymentsByProjectPage() {
   if (!canManagePayments(user)) redirect('/admin');
 
   const supabase = await createSupabaseServerClient();
-  let q = supabase
+  const { data } = await supabase
     .from('financial_entries')
-    .select('project_id, bu_code, status, amount, actual_amount, projects(name)')
-    .eq('kind', 'expense');
-  if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
-  const { data } = await q;
+    .select('project_id, status, amount, actual_amount, projects(name)')
+    .eq('kind', 'expense')
+    .eq('bu_code', ADMIN_BU);
 
   const byProject = new Map<
     string,
-    { key: string; project_id: number | null; name: string; bu_code: string; planned: number; paid: number; count: number }
+    { key: string; project_id: number | null; name: string; planned: number; paid: number; count: number }
   >();
 
   for (const r of ((data as unknown) as Row[]) ?? []) {
-    const key = `${r.bu_code}:${r.project_id ?? 'none'}`;
+    const key = `${r.project_id ?? 'none'}`;
     const entry = byProject.get(key) ?? {
       key,
       project_id: r.project_id,
       name: r.projects?.name ?? '(미지정)',
-      bu_code: r.bu_code,
       planned: 0,
       paid: 0,
       count: 0,
@@ -61,7 +58,7 @@ export default async function PaymentsByProjectPage() {
         <table className="w-full">
           <thead>
             <tr className="bg-white/[0.03] border-b border-white/10">
-              {['BU', '프로젝트', '건수', '예정 합계', '지급 합계', ''].map((h) => (
+              {['프로젝트', '건수', '예정 합계', '지급 합계', ''].map((h) => (
                 <th key={h} className="text-left px-3 py-3 text-white/40 text-xs font-medium">
                   {h}
                 </th>
@@ -71,7 +68,6 @@ export default async function PaymentsByProjectPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.key} className="border-b border-white/5 hover:bg-white/[0.02]">
-                <td className="px-3 py-3 text-white/60 text-xs">{r.bu_code}</td>
                 <td className="px-3 py-3 text-white text-sm">{r.name}</td>
                 <td className="px-3 py-3 text-white/70 text-sm">{r.count}건</td>
                 <td className="px-3 py-3 text-yellow-400 text-sm">
@@ -94,7 +90,7 @@ export default async function PaymentsByProjectPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-10 text-white/30 text-sm">
+                <td colSpan={5} className="text-center py-10 text-white/30 text-sm">
                   집계할 지급 내역이 없습니다.
                 </td>
               </tr>
