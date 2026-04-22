@@ -184,7 +184,7 @@ export default function PaymentsClient() {
           <table className="w-full">
             <thead>
               <tr className="bg-white/[0.03] border-b border-white/10">
-                {['BU', '프로젝트', '수신자', '항목', '금액', '예정일', '상태', '방식', ''].map((h) => (
+                {['프로젝트', '수신자', '항목', '금액', '예정일', '상태', '방식', ''].map((h) => (
                   <th key={h} className="text-left px-3 py-3 text-white/40 text-xs font-medium">
                     {h}
                   </th>
@@ -194,7 +194,6 @@ export default function PaymentsClient() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                  <td className="px-3 py-3 text-white/60 text-xs">{r.bu_code}</td>
                   <td className="px-3 py-3 text-white/80 text-sm">{r.projects?.name ?? '-'}</td>
                   <td className="px-3 py-3 text-white text-sm">{payeeName(r)}</td>
                   <td className="px-3 py-3">

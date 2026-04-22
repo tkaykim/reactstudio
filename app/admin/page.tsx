@@ -1,21 +1,15 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import { MessageSquare, Clock, CheckCircle, TrendingUp } from 'lucide-react';
-import { requireAdmin, canViewAll } from '@/lib/admin-auth';
-import type { AdminUser } from '@/lib/admin-auth';
+import { requireAdmin, ADMIN_BU } from '@/lib/admin-auth';
 
-async function getDashboardStats(user: AdminUser) {
+async function getDashboardStats() {
   try {
     const supabase = await createSupabaseServerClient();
-    const scoped = !canViewAll(user);
-
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    const base = () => {
-      let q = supabase.from('inquiries').select('*', { count: 'exact', head: true });
-      if (scoped) q = q.eq('bu_code', user.bu_code);
-      return q;
-    };
+    const base = () =>
+      supabase.from('inquiries').select('*', { count: 'exact', head: true }).eq('bu_code', ADMIN_BU);
 
     const [{ count: totalNew }, { count: totalInProgress }, { count: thisMonth }, { count: totalDone }] =
       await Promise.all([
@@ -31,16 +25,15 @@ async function getDashboardStats(user: AdminUser) {
   }
 }
 
-async function getRecentInquiries(user: AdminUser) {
+async function getRecentInquiries() {
   try {
     const supabase = await createSupabaseServerClient();
-    let q = supabase
+    const { data } = await supabase
       .from('inquiries')
       .select('id, name, company, services, status, created_at, bu_code')
+      .eq('bu_code', ADMIN_BU)
       .order('created_at', { ascending: false })
       .limit(5);
-    if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
-    const { data } = await q;
     return data ?? [];
   } catch {
     return [];
@@ -59,9 +52,9 @@ const statusLabels: Record<string, string> = {
 };
 
 export default async function AdminDashboard() {
-  const user = await requireAdmin();
-  const stats = await getDashboardStats(user);
-  const recent = await getRecentInquiries(user);
+  await requireAdmin();
+  const stats = await getDashboardStats();
+  const recent = await getRecentInquiries();
 
   const cards = [
     { icon: MessageSquare, label: '미처리 문의', value: stats.totalNew ?? 0, color: 'text-brand' },

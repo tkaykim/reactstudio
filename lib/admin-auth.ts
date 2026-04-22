@@ -14,6 +14,8 @@ export interface AdminUser {
 }
 
 export const ADMIN_ALLOWED_BU_CODES: BuCode[] = ['REACT', 'HEAD'];
+/** 이 웹의 관리자는 REACT BU 데이터만 다룬다. 모든 /admin 쿼리는 이 BU로 고정 필터. */
+export const ADMIN_BU: BuCode = 'REACT';
 export const ADMIN_ALLOWED_ROLES: AdminRole[] = ['admin', 'leader', 'manager'];
 
 function isAllowed(u: { role: string | null; bu_code: string | null; status: string | null }) {

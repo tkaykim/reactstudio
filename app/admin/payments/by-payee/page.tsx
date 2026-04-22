@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { requireAdmin, canManagePayments, canViewAll } from '@/lib/admin-auth';
+import { requireAdmin, canManagePayments, ADMIN_BU } from '@/lib/admin-auth';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 
 type Row = {
@@ -19,15 +19,15 @@ export default async function PaymentsByPayeePage() {
   if (!canManagePayments(user)) redirect('/admin');
 
   const supabase = await createSupabaseServerClient();
-  let q = supabase
+  const q = supabase
     .from('financial_entries')
     .select(
       `bu_code, status, amount, actual_amount, partner_id, payee_app_user_id,
        partners(display_name),
        payee:app_users!financial_entries_payee_app_user_id_fkey(name)`
     )
-    .eq('kind', 'expense');
-  if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+    .eq('kind', 'expense')
+    .eq('bu_code', ADMIN_BU);
   const { data } = await q;
 
   const map = new Map<

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase';
-import { apiRequireAdmin, canViewAll, canApprovePayments } from '@/lib/admin-auth';
+import { apiRequireAdmin, canApprovePayments, ADMIN_BU } from '@/lib/admin-auth';
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const guard = await apiRequireAdmin();
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
-  let q = supabase
+  const q = supabase
     .from('financial_entries')
     .update({
       status: 'paid',
@@ -27,8 +27,8 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       approved_at: now,
       updated_at: now,
     })
-    .eq('id', Number(id));
-  if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
+    .eq('id', Number(id))
+    .eq('bu_code', ADMIN_BU);
   const { data, error } = await q.select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

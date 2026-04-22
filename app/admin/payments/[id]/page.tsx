@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { requireAdmin, canManagePayments, canViewAll } from '@/lib/admin-auth';
+import { requireAdmin, canManagePayments, ADMIN_BU } from '@/lib/admin-auth';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
 import PaymentForm from '../PaymentForm';
 import PaymentActions from './PaymentActions';
@@ -15,9 +15,12 @@ export default async function PaymentDetailPage({
   const { id } = await params;
 
   const supabase = await createSupabaseServerClient();
-  let q = supabase.from('financial_entries').select('*').eq('id', Number(id));
-  if (!canViewAll(user)) q = q.eq('bu_code', user.bu_code);
-  const { data } = await q.single();
+  const { data } = await supabase
+    .from('financial_entries')
+    .select('*')
+    .eq('id', Number(id))
+    .eq('bu_code', ADMIN_BU)
+    .single();
   if (!data) notFound();
 
   return (
@@ -41,11 +44,9 @@ export default async function PaymentDetailPage({
       <div className="mt-6">
         <PaymentForm
           mode="edit"
-          defaultBuCode={user.bu_code}
           initial={{
             id: data.id,
             project_id: data.project_id,
-            bu_code: data.bu_code,
             category: data.category,
             name: data.name,
             amount: data.amount,

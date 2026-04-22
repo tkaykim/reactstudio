@@ -15,14 +15,14 @@ type SignupRequest = {
   created_at: string;
 };
 
-const BU_CODES: BuCode[] = ['REACT', 'HEAD', 'GRIGO', 'FLOW', 'MODOO', 'AST'];
+const ADMIN_BU: BuCode = 'REACT';
 const ROLES = ['member', 'manager', 'leader', 'admin', 'viewer', 'artist'] as const;
 
 export default function SignupRequestsClient() {
   const [requests, setRequests] = useState<SignupRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
-  const [decisions, setDecisions] = useState<Record<string, { bu_code: BuCode; role: string }>>({});
+  const [decisions, setDecisions] = useState<Record<string, { role: string }>>({});
 
   async function load() {
     setLoading(true);
@@ -33,12 +33,7 @@ export default function SignupRequestsClient() {
     setDecisions((prev) => {
       const next = { ...prev };
       for (const r of list) {
-        if (!next[r.id]) {
-          next[r.id] = {
-            bu_code: (r.requested_bu_code ?? 'REACT') as BuCode,
-            role: 'member',
-          };
-        }
+        if (!next[r.id]) next[r.id] = { role: 'member' };
       }
       return next;
     });
@@ -57,7 +52,7 @@ export default function SignupRequestsClient() {
       const res = await fetch(`/api/admin/signup-requests/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bu_code: d.bu_code, role: d.role }),
+        body: JSON.stringify({ bu_code: ADMIN_BU, role: d.role }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -111,7 +106,7 @@ export default function SignupRequestsClient() {
             ) : (
               <div className="space-y-3">
                 {pending.map((r) => {
-                  const d = decisions[r.id] ?? { bu_code: 'REACT' as BuCode, role: 'member' };
+                  const d = decisions[r.id] ?? { role: 'member' };
                   return (
                     <div
                       key={r.id}
@@ -122,8 +117,6 @@ export default function SignupRequestsClient() {
                           <p className="text-white font-medium">{r.name}</p>
                           <p className="text-white/50 text-sm">{r.email}</p>
                           <p className="text-white/30 text-xs mt-1">
-                            신청 BU: <span className="text-white/60">{r.requested_bu_code ?? '-'}</span>
-                            {' · '}
                             신청일:{' '}
                             {r.signup_requested_at
                               ? new Date(r.signup_requested_at).toLocaleString('ko-KR')
@@ -137,24 +130,7 @@ export default function SignupRequestsClient() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2 items-center">
-                        <label className="text-white/50 text-xs">BU</label>
-                        <select
-                          value={d.bu_code}
-                          onChange={(e) =>
-                            setDecisions((p) => ({
-                              ...p,
-                              [r.id]: { ...d, bu_code: e.target.value as BuCode },
-                            }))
-                          }
-                          className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand"
-                        >
-                          {BU_CODES.map((c) => (
-                            <option key={c} value={c} className="bg-black">
-                              {c}
-                            </option>
-                          ))}
-                        </select>
-                        <label className="text-white/50 text-xs ml-2">Role</label>
+                        <label className="text-white/50 text-xs">Role</label>
                         <select
                           value={d.role}
                           onChange={(e) =>

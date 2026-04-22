@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { PAYMENT_METHOD_LABELS, type PaymentMethod, type BuCode } from '@/types';
-import { useAdminUser } from '@/lib/use-admin-user';
+
+const ADMIN_BU: BuCode = 'REACT';
 
 type Project = { id: number; name: string; bu_code: string };
 type Partner = { id: number; display_name: string; name_ko: string | null };
@@ -30,15 +31,13 @@ type Initial = {
 export default function PaymentForm({
   mode,
   initial,
-  defaultBuCode,
 }: {
   mode: 'create' | 'edit';
   initial?: Initial;
-  defaultBuCode: BuCode;
+  defaultBuCode?: BuCode;
 }) {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
-  const { user, canViewAll } = useAdminUser();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -47,7 +46,6 @@ export default function PaymentForm({
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    bu_code: (initial?.bu_code ?? defaultBuCode) as BuCode,
     project_id: initial?.project_id ?? null,
     payee_type: initial?.payee_app_user_id ? 'staff' : initial?.partner_id ? 'partner' : 'partner',
     partner_id: initial?.partner_id ?? null as number | null,
@@ -62,24 +60,28 @@ export default function PaymentForm({
   });
 
   useEffect(() => {
-    // Load projects for the selected BU
     (async () => {
-      let q = supabase.from('projects').select('id, name, bu_code').order('created_at', { ascending: false }).limit(200);
-      if (!canViewAll) q = q.eq('bu_code', form.bu_code);
-      const { data } = await q;
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, bu_code')
+        .eq('bu_code', ADMIN_BU)
+        .order('created_at', { ascending: false })
+        .limit(200);
       setProjects((data as Project[]) ?? []);
     })();
-  }, [supabase, form.bu_code, canViewAll]);
+  }, [supabase]);
 
   useEffect(() => {
-    // Load staff (app_users with bu_code) for internal payee picker
     (async () => {
-      let q = supabase.from('app_users').select('id, name, email, bu_code').eq('status', 'active').order('name');
-      if (!canViewAll) q = q.eq('bu_code', form.bu_code);
-      const { data } = await q;
+      const { data } = await supabase
+        .from('app_users')
+        .select('id, name, email, bu_code')
+        .eq('status', 'active')
+        .eq('bu_code', ADMIN_BU)
+        .order('name');
       setStaff((data as Staff[]) ?? []);
     })();
-  }, [supabase, form.bu_code, canViewAll]);
+  }, [supabase]);
 
   useEffect(() => {
     // Partner search (debounced minimal)
@@ -103,7 +105,6 @@ export default function PaymentForm({
     setSubmitting(true);
     try {
       const payload = {
-        bu_code: form.bu_code,
         project_id: form.project_id,
         category: form.category || null,
         name: form.name || null,
@@ -135,30 +136,8 @@ export default function PaymentForm({
     }
   }
 
-  const buOptions: BuCode[] = canViewAll
-    ? ['GRIGO', 'FLOW', 'REACT', 'MODOO', 'AST', 'HEAD']
-    : user
-      ? [user.bu_code]
-      : [form.bu_code];
-
   return (
     <form onSubmit={submit} className="space-y-4 max-w-2xl">
-      {/* BU */}
-      <div>
-        <label className="text-white/50 text-xs mb-1 block">BU</label>
-        <select
-          value={form.bu_code}
-          onChange={(e) => setForm((f) => ({ ...f, bu_code: e.target.value as BuCode }))}
-          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm focus:outline-none focus:border-brand"
-          disabled={!canViewAll}
-        >
-          {buOptions.map((b) => (
-            <option key={b} value={b} className="bg-black">
-              {b}
-            </option>
-          ))}
-        </select>
-      </div>
 
       {/* Project */}
       <div>
