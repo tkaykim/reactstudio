@@ -4,23 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import type { BuCode } from '@/types';
-
-const BU_OPTIONS: { code: BuCode; label: string }[] = [
-  { code: 'REACT', label: 'REACT' },
-  { code: 'HEAD', label: 'HEAD (경영지원)' },
-  { code: 'GRIGO', label: 'GRIGO' },
-  { code: 'FLOW', label: 'FLOW' },
-  { code: 'MODOO', label: 'MODOO' },
-  { code: 'AST', label: 'AST' },
-];
 
 export default function AdminSignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [requestedBu, setRequestedBu] = useState<BuCode>('REACT');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,7 +27,7 @@ export default function AdminSignupPage() {
           name,
           email,
           password,
-          requested_bu_code: requestedBu,
+          requested_bu_code: 'REACT',
           signup_message: message,
         }),
       });
@@ -124,20 +113,6 @@ export default function AdminSignupPage() {
                 {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-          </div>
-          <div>
-            <label className="text-white/50 text-sm mb-1.5 block">소속 BU</label>
-            <select
-              value={requestedBu}
-              onChange={(e) => setRequestedBu(e.target.value as BuCode)}
-              className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:border-brand transition-colors"
-            >
-              {BU_OPTIONS.map((o) => (
-                <option key={o.code} value={o.code} className="bg-black">
-                  {o.label}
-                </option>
-              ))}
-            </select>
           </div>
           <div>
             <label className="text-white/50 text-sm mb-1.5 block">메모 (선택)</label>

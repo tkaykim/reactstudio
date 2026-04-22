@@ -9,7 +9,8 @@
       "Bash(npm run:*)",
       "Bash(ls:*)",
       "Bash(curl:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "mcp__60bbf13e-287a-4999-bab2-fa16b7a8469f__apply_migration"
     ]
   }
 }
