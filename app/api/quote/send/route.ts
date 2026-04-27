@@ -3,10 +3,11 @@ import { createSupabaseAdminClient } from '@/lib/supabase';
 import { sendQuoteEmail } from '@/lib/email';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { buildQuoteDocument } from '@/components/sections/QuoteDocument';
+import { loadCompanyDocAttachments, type CompanyDocKind } from '@/lib/company-docs';
 
 export async function POST(req: NextRequest) {
   try {
-    const { quoteId, ccEmails } = await req.json();
+    const { quoteId, ccEmails, attachDocs } = await req.json();
 
     if (!quoteId) {
       return NextResponse.json({ error: '견적서 ID가 필요합니다.' }, { status: 400 });
@@ -48,7 +49,8 @@ export async function POST(req: NextRequest) {
 
     try {
       const cc = ccEmails?.length ? ccEmails : undefined;
-      await sendQuoteEmail(inquiry.email, inquiry.name, pdfBuffer, viewUrl, quote, inquiry.company, inquiry.project_title, cc);
+      const extras = await loadCompanyDocAttachments(attachDocs as CompanyDocKind[] | undefined);
+      await sendQuoteEmail(inquiry.email, inquiry.name, pdfBuffer, viewUrl, quote, inquiry.company, inquiry.project_title, cc, extras);
     } catch (emailErr) {
       console.error('Email send error:', emailErr);
       const msg = emailErr instanceof Error ? emailErr.message : '알 수 없는 오류';

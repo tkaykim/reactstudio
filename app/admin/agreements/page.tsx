@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Send, Loader2, FileText } from 'lucide-react';
+import { Plus, Send, Loader2, FileText, X } from 'lucide-react';
 import type { Agreement } from '@/types';
+import { CompanyDocsCard, type CompanyDocKind } from '@/components/admin/CompanyDocsCard';
+import { AttachDocsPicker } from '@/components/admin/AttachDocsPicker';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: '작성중', className: 'bg-white/10 text-white/50' },
@@ -14,6 +16,8 @@ export default function AgreementsPage() {
   const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState<number | null>(null);
+  const [pendingSend, setPendingSend] = useState<Agreement | null>(null);
+  const [attachDocs, setAttachDocs] = useState<CompanyDocKind[]>([]);
 
   useEffect(() => {
     fetch('/api/agreement')
@@ -22,19 +26,23 @@ export default function AgreementsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function sendAgreement(id: number) {
+  async function confirmSend() {
+    if (!pendingSend) return;
+    const id = pendingSend.id;
     setSending(id);
     try {
       const res = await fetch('/api/agreement/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agreementId: id }),
+        body: JSON.stringify({ agreementId: id, attachDocs }),
       });
       const data = await res.json();
       if (data.success) {
         setAgreements((prev) =>
           prev.map((a) => (a.id === id ? { ...a, status: 'sent', sent_at: new Date().toISOString() } : a))
         );
+        setPendingSend(null);
+        setAttachDocs([]);
       } else {
         alert('발송 실패: ' + data.error);
       }
@@ -45,6 +53,7 @@ export default function AgreementsPage() {
 
   return (
     <div>
+      <CompanyDocsCard />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black text-white">계약 관리</h1>
         <Link
@@ -113,7 +122,7 @@ export default function AgreementsPage() {
                   <td className="px-4 py-3">
                     {a.status === 'draft' && (
                       <button
-                        onClick={() => sendAgreement(a.id)}
+                        onClick={() => { setAttachDocs([]); setPendingSend(a); }}
                         disabled={sending === a.id}
                         className="flex items-center gap-1 text-brand text-xs hover:underline disabled:opacity-40"
                       >
@@ -130,6 +139,59 @@ export default function AgreementsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pendingSend && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => sending === null && setPendingSend(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-white/10 bg-neutral-900 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold text-base">계약서 발송</h3>
+              <button
+                onClick={() => sending === null && setPendingSend(null)}
+                className="text-white/40 hover:text-white"
+                disabled={sending !== null}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <p className="text-white/60 text-sm mb-4">
+              <b className="text-white">{pendingSend.client_company}</b> ({pendingSend.client_email}) 으로
+              <br />
+              <span className="text-white/80">{pendingSend.title}</span> 계약서를 발송합니다.
+            </p>
+
+            <AttachDocsPicker
+              value={attachDocs}
+              onChange={setAttachDocs}
+              primaryLabel="계약서 DOCX"
+              primaryHint="계약서 초안을 DOCX 첨부파일로 발송"
+            />
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setPendingSend(null)}
+                disabled={sending !== null}
+                className="px-4 py-2 text-white/60 text-sm hover:text-white disabled:opacity-40"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmSend}
+                disabled={sending !== null}
+                className="flex items-center gap-2 px-4 py-2 bg-brand text-white text-sm font-semibold rounded hover:bg-orange-600 disabled:opacity-40"
+              >
+                {sending !== null ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                발송하기
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
