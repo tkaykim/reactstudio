@@ -31,6 +31,20 @@ export async function POST(req: NextRequest) {
 
     const combinedMessage = [message, ...extraParts].filter(Boolean).join('\n');
 
+    // Structured mirror of the wizard fields. Stored alongside `message` so the
+    // existing admin UI/email pipelines (which read `message`) keep working,
+    // while ERP/BI consumers can query the JSONB directly.
+    const intakePayload: Record<string, unknown> = {
+      ...(content_types?.length ? { content_types } : {}),
+      ...(video_count ? { video_count } : {}),
+      ...(meeting_preference ? { meeting_preference } : {}),
+      ...(preferred_date ? { preferred_date } : {}),
+      ...(preferred_time_slot ? { preferred_time_slot } : {}),
+      ...(custom_service ? { custom_service } : {}),
+      ...(additional_request ? { additional_request } : {}),
+      ...(filteredUrls.length ? { reference_urls: filteredUrls } : {}),
+    };
+
     const supabase = createSupabaseAdminClient();
     const { error: dbError } = await supabase.from('inquiries').insert({
       bu_code: CURRENT_BU_CODE,
@@ -43,6 +57,7 @@ export async function POST(req: NextRequest) {
       reference_urls: filteredUrls,
       reference_url: filteredUrls[0] || null,
       message: combinedMessage,
+      intake_payload: intakePayload,
       status: 'new',
     });
 

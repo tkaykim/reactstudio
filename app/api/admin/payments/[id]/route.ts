@@ -34,13 +34,15 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   const { id } = await context.params;
   const body = await req.json();
   delete body.bu_code;
+  delete body.kind;
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from('financial_entries')
-    .update({ ...body, bu_code: ADMIN_BU, updated_at: new Date().toISOString() })
+    .update({ ...body, bu_code: ADMIN_BU, kind: 'expense', updated_at: new Date().toISOString() })
     .eq('id', Number(id))
     .eq('bu_code', ADMIN_BU)
+    .eq('kind', 'expense')
     .select()
     .single();
 
@@ -62,7 +64,8 @@ export async function DELETE(_req: NextRequest, context: { params: Promise<{ id:
     .from('financial_entries')
     .delete()
     .eq('id', Number(id))
-    .eq('bu_code', ADMIN_BU);
+    .eq('bu_code', ADMIN_BU)
+    .eq('kind', 'expense');
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

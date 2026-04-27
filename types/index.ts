@@ -18,6 +18,23 @@ export interface PortfolioItem {
   created_at: string;
 }
 
+export interface InquiryIntakePayload {
+  content_types?: ContentType[];
+  services?: string[];
+  custom_service?: string | null;
+  video_count?: string | null;
+  project_scale?: string | null;
+  description?: string | null;
+  reference_urls?: string[];
+  budget_range?: string | null;
+  deadline?: string | null;
+  meeting_preference?: string | null;
+  preferred_date?: string | null;
+  preferred_time_slot?: string | null;
+  additional_request?: string | null;
+  [key: string]: unknown;
+}
+
 export interface Inquiry {
   id: number;
   bu_code: BuCode;
@@ -34,9 +51,19 @@ export interface Inquiry {
   reference_url: string | null;
   reference_urls: string[];
   message: string;
+  // Optional because some Supabase queries narrow the select list
+  // (e.g. `inquiries(name, email, company)`) and the resulting object is then
+  // cast to `Inquiry`. DB-level NOT NULL guarantees the column always exists
+  // for full-row reads, but at the type level we keep this optional to match
+  // the narrowed-select reality across the app.
+  intake_payload?: InquiryIntakePayload;
   status: 'new' | 'in_progress' | 'done';
   client_token: string | null;
   project_id: number | null;
+  // Phase 3: optional FK to public.partners(id). NULL until admin matches the
+  // inquiry to a partner record. Optional for the same narrow-select reason
+  // as `intake_payload` above.
+  partner_id?: number | null;
   created_at: string;
 }
 

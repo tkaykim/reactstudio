@@ -17,3 +17,6 @@ npm-debug.log*
 # misc
 .DS_Store
 *.tsbuildinfo
+
+# claude code
+.claude/worktrees/
