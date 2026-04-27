@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, FileText, Film, FileSignature, Users, LogOut, Wallet, UserPlus } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, FileText, Film, FileSignature, Users, LogOut, Wallet, UserPlus, Briefcase, Handshake } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import Image from 'next/image';
 import type { AdminRole, AdminUser } from '@/lib/admin-auth';
@@ -18,6 +18,8 @@ type NavItem = {
 const navItems: NavItem[] = [
   { href: '/admin', icon: LayoutDashboard, label: '대시보드' },
   { href: '/admin/inquiries', icon: MessageSquare, label: '문의 관리' },
+  { href: '/admin/projects', icon: Briefcase, label: '프로젝트' },
+  { href: '/admin/partners', icon: Handshake, label: '파트너' },
   { href: '/admin/contracts', icon: FileSignature, label: '견적 관리' },
   { href: '/admin/agreements', icon: FileText, label: '계약 관리' },
   { href: '/admin/finance', icon: Wallet, label: '재무', headOnly: true },
