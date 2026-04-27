@@ -3,10 +3,11 @@ import { createSupabaseAdminClient } from '@/lib/supabase';
 import { transporter } from '@/lib/email';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { buildContractDocument } from '@/components/sections/ContractDocument';
+import { loadCompanyDocAttachments, type CompanyDocKind } from '@/lib/company-docs';
 
 export async function POST(req: NextRequest) {
   try {
-    const { contractId, ccEmails } = await req.json();
+    const { contractId, ccEmails, attachDocs } = await req.json();
 
     if (!contractId) {
       return NextResponse.json({ error: '견적서 ID가 필요합니다.' }, { status: 400 });
@@ -42,6 +43,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    const extraDocs = await loadCompanyDocAttachments(attachDocs as CompanyDocKind[] | undefined);
 
     try {
       const cc = ccEmails?.length ? ccEmails : undefined;
@@ -95,6 +98,7 @@ export async function POST(req: NextRequest) {
             content: pdfBuffer,
             contentType: 'application/pdf',
           },
+          ...extraDocs,
         ],
       });
     } catch (emailErr) {

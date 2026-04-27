@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase';
 import { transporter } from '@/lib/email';
 import { generateContractDocx } from '@/lib/generate-contract-docx';
+import { loadCompanyDocAttachments, type CompanyDocKind } from '@/lib/company-docs';
 
 export async function POST(req: NextRequest) {
   try {
-    const { agreementId } = await req.json();
+    const { agreementId, attachDocs } = await req.json();
 
     if (!agreementId) {
       return NextResponse.json({ error: '계약서 ID가 필요합니다.' }, { status: 400 });
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    const extraDocs = await loadCompanyDocAttachments(attachDocs as CompanyDocKind[] | undefined);
 
     try {
       await transporter.sendMail({
@@ -89,6 +92,7 @@ export async function POST(req: NextRequest) {
             content: docxBuffer,
             contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           },
+          ...extraDocs,
         ],
       });
     } catch (emailErr) {

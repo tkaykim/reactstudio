@@ -90,6 +90,7 @@ export async function sendQuoteEmail(
   clientCompany?: string,
   projectTitle?: string,
   cc?: string[],
+  extraAttachments?: { filename: string; content: Buffer; contentType: string }[],
 ) {
   const today = new Date().toLocaleDateString('ko-KR');
   const docNumber = quote ? `RS-${String(quote.id).padStart(6, '0')}` : '';
@@ -215,6 +216,7 @@ export async function sendQuoteEmail(
         content: pdfBuffer,
         contentType: 'application/pdf',
       },
+      ...(extraAttachments ?? []),
     ],
   });
 }

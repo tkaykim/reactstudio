@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { Plus, Trash2, Send, Loader2, Eye, X } from 'lucide-react';
 import type { Inquiry, QuoteItem } from '@/types';
+import { CompanyDocsCard, type CompanyDocKind } from '@/components/admin/CompanyDocsCard';
+import { AttachDocsPicker } from '@/components/admin/AttachDocsPicker';
 
 function calcAmounts(items: QuoteItem[]) {
   const supply = items.reduce((sum, i) => sum + i.amount, 0);
@@ -29,6 +31,7 @@ export default function QuotePage() {
   const [clientResponseNote, setClientResponseNote] = useState<string | null>(null);
   const [ccEmails, setCcEmails] = useState<string[]>([]);
   const [ccInput, setCcInput] = useState('');
+  const [attachDocs, setAttachDocs] = useState<CompanyDocKind[]>([]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -104,7 +107,7 @@ export default function QuotePage() {
       const res = await fetch('/api/quote/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quoteId, ccEmails }),
+        body: JSON.stringify({ quoteId, ccEmails, attachDocs }),
       });
       const data = await res.json();
       setMessage(data.success ? '견적서가 고객 이메일로 발송되었습니다.' : '발송 실패: ' + data.error);
@@ -306,6 +309,16 @@ export default function QuotePage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mb-6">
+        <CompanyDocsCard />
+        <AttachDocsPicker
+          value={attachDocs}
+          onChange={setAttachDocs}
+          primaryLabel="견적서 PDF"
+          primaryHint="견적서를 PDF 첨부파일로 발송"
+        />
       </div>
 
       {message && (

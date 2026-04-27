@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Send, Loader2, FileSignature } from 'lucide-react';
+import { Plus, Send, Loader2, FileSignature, X } from 'lucide-react';
 import type { Contract } from '@/types';
+import { CompanyDocsCard, type CompanyDocKind } from '@/components/admin/CompanyDocsCard';
+import { AttachDocsPicker } from '@/components/admin/AttachDocsPicker';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: '작성중', className: 'bg-white/10 text-white/50' },
@@ -15,6 +17,8 @@ export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState<number | null>(null);
+  const [pendingSend, setPendingSend] = useState<Contract | null>(null);
+  const [attachDocs, setAttachDocs] = useState<CompanyDocKind[]>([]);
 
   useEffect(() => {
     fetch('/api/contract')
@@ -23,17 +27,23 @@ export default function ContractsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function sendContract(id: number) {
+  async function confirmSend() {
+    if (!pendingSend) return;
+    const id = pendingSend.id;
     setSending(id);
     try {
       const res = await fetch('/api/contract/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contractId: id }),
+        body: JSON.stringify({ contractId: id, attachDocs }),
       });
       const data = await res.json();
       if (data.success) {
         setContracts((prev) => prev.map((c) => c.id === id ? { ...c, status: 'sent', sent_at: new Date().toISOString() } : c));
+        setPendingSend(null);
+        setAttachDocs([]);
+      } else {
+        alert('발송 실패: ' + data.error);
       }
     } finally {
       setSending(null);
@@ -42,6 +52,7 @@ export default function ContractsPage() {
 
   return (
     <div>
+      <CompanyDocsCard />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-black text-white">견적 관리</h1>
         <Link
@@ -92,7 +103,7 @@ export default function ContractsPage() {
                   <td className="px-4 py-3">
                     {c.status === 'draft' && (
                       <button
-                        onClick={() => sendContract(c.id)}
+                        onClick={() => { setAttachDocs([]); setPendingSend(c); }}
                         disabled={sending === c.id}
                         className="flex items-center gap-1 text-brand text-xs hover:underline disabled:opacity-40"
                       >
@@ -105,6 +116,59 @@ export default function ContractsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pendingSend && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => sending === null && setPendingSend(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-white/10 bg-neutral-900 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold text-base">견적서 발송</h3>
+              <button
+                onClick={() => sending === null && setPendingSend(null)}
+                className="text-white/40 hover:text-white"
+                disabled={sending !== null}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <p className="text-white/60 text-sm mb-4">
+              <b className="text-white">{pendingSend.client_name}</b> ({pendingSend.client_email}) 으로
+              <br />
+              <span className="text-white/80">{pendingSend.title}</span> 견적서를 발송합니다.
+            </p>
+
+            <AttachDocsPicker
+              value={attachDocs}
+              onChange={setAttachDocs}
+              primaryLabel="견적서 PDF"
+              primaryHint="견적서를 PDF 첨부파일로 발송"
+            />
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setPendingSend(null)}
+                disabled={sending !== null}
+                className="px-4 py-2 text-white/60 text-sm hover:text-white disabled:opacity-40"
+              >
+                취소
+              </button>
+              <button
+                onClick={confirmSend}
+                disabled={sending !== null}
+                className="flex items-center gap-2 px-4 py-2 bg-brand text-white text-sm font-semibold rounded hover:bg-orange-600 disabled:opacity-40"
+              >
+                {sending !== null ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                발송하기
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
