@@ -1,6 +1,6 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Link, Image } from '@react-pdf/renderer';
 import '@/lib/pdf-fonts';
-import type { Quote, QuoteItem } from '@/types';
+import type { Quote, QuoteItem, QuoteReference } from '@/types';
 
 const styles = StyleSheet.create({
   page: {
@@ -130,6 +130,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff8f5',
     borderLeftWidth: 3,
     borderLeftColor: '#FF4D00',
+  },
+  refSection: {
+    marginTop: 24,
+  },
+  refHeading: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#111111',
+    marginBottom: 4,
+  },
+  refSub: {
+    fontSize: 8,
+    color: '#888888',
+    marginBottom: 12,
+  },
+  refGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+  },
+  refCard: {
+    width: 230,
+  },
+  refThumb: {
+    width: 230,
+    height: 129,
+    borderRadius: 4,
+    objectFit: 'cover',
+  },
+  refTitle: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: '#111111',
+    marginTop: 6,
+    textDecoration: 'none',
+  },
+  refRoles: {
+    fontSize: 8,
+    color: '#FF4D00',
+    marginTop: 3,
   },
   notesLabel: {
     fontSize: 8,
@@ -272,6 +312,30 @@ export default function QuoteDocument({ quote, clientName, clientCompany, projec
           <View style={styles.notes}>
             <Text style={styles.notesLabel}>비고</Text>
             <Text style={styles.notesText}>{quote.notes}</Text>
+          </View>
+        ) : null}
+
+        {/* References */}
+        {(quote.references ?? []).length > 0 ? (
+          <View style={styles.refSection} wrap={false}>
+            <Text style={styles.refHeading}>참고 레퍼런스</Text>
+            <Text style={styles.refSub}>썸네일을 클릭하면 해당 영상으로 이동합니다.</Text>
+            <View style={styles.refGrid}>
+              {(quote.references ?? []).map((ref: QuoteReference, i: number) => (
+                <View key={i} style={styles.refCard}>
+                  <Link src={ref.url}>
+                    <Image
+                      src={`https://img.youtube.com/vi/${ref.video_id}/mqdefault.jpg`}
+                      style={styles.refThumb}
+                    />
+                  </Link>
+                  <Link src={ref.url} style={styles.refTitle}>{ref.title}</Link>
+                  {ref.roles && ref.roles.length > 0 ? (
+                    <Text style={styles.refRoles}>{ref.roles.join(' · ')}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
           </View>
         ) : null}
 

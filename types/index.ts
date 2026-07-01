@@ -74,11 +74,19 @@ export interface QuoteItem {
   amount: number;
 }
 
+export interface QuoteReference {
+  video_id: string;
+  url: string;
+  title: string;
+  roles?: string[];
+}
+
 export interface Quote {
   id: number;
   bu_code: BuCode;
   inquiry_id: number;
   items: QuoteItem[];
+  references?: QuoteReference[];
   supply_amount: number;
   vat: number;
   total_amount: number;

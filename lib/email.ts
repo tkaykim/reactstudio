@@ -70,6 +70,7 @@ export async function sendAdminNotification(inquiry: {
 interface QuoteEmailData {
   id: number;
   items: { name: string; qty: number; unit_price: number; amount: number }[];
+  references?: { video_id: string; url: string; title: string; roles?: string[] }[];
   supply_amount: number;
   vat: number;
   total_amount: number;
@@ -103,6 +104,31 @@ export async function sendQuoteEmail(
       <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:right">${formatKRW(item.amount)}</td>
     </tr>
   `).join('') || '';
+
+  const refCards = quote?.references?.map((ref) => `
+    <td style="width:50%;padding:6px;vertical-align:top">
+      <a href="${ref.url}" target="_blank" style="text-decoration:none;color:#111">
+        <img src="https://img.youtube.com/vi/${ref.video_id}/mqdefault.jpg" width="100%" style="border-radius:6px;display:block" alt="${ref.title}">
+        <div style="font-size:12px;font-weight:bold;margin-top:6px;line-height:1.4">${ref.title}</div>
+        ${ref.roles?.length ? `<div style="font-size:11px;color:#FF4D00;margin-top:3px">${ref.roles.join(' · ')}</div>` : ''}
+      </a>
+    </td>
+  `) || [];
+
+  // 2열 그리드용 행 묶음
+  const refRowsHtml = refCards.length
+    ? Array.from({ length: Math.ceil(refCards.length / 2) }, (_, r) =>
+        `<tr>${refCards.slice(r * 2, r * 2 + 2).join('')}</tr>`
+      ).join('')
+    : '';
+
+  const referencesBlock = refCards.length ? `
+      <div style="margin:24px 0">
+        <div style="font-size:14px;font-weight:bold;color:#111;margin-bottom:2px">참고 레퍼런스</div>
+        <div style="font-size:11px;color:#888;margin-bottom:10px">썸네일을 클릭하면 해당 영상으로 이동합니다.</div>
+        <table width="100%" style="border-collapse:collapse">${refRowsHtml}</table>
+      </div>
+  ` : '';
 
   const quoteBody = quote ? `
     <div style="max-width:600px;margin:0 auto;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#111">
@@ -176,6 +202,8 @@ export async function sendQuoteEmail(
         <p style="margin:4px 0 0;font-size:12px;color:#444;line-height:1.6">${quote.notes}</p>
       </div>
       ` : ''}
+
+      ${referencesBlock}
 
       ${viewUrl ? `
       <div style="text-align:center;margin:24px 0">
