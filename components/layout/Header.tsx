@@ -41,10 +41,10 @@ export default function Header() {
               <Image
                 src="/brand/react-logo-black.png"
                 alt="REACT Studio"
-                width={176}
-                height={35}
+                width={106}
+                height={21}
                 priority
-                className="h-auto w-32 invert sm:w-40"
+                className="h-auto w-20 invert sm:w-24"
               />
             </Link>
 

@@ -11,9 +11,9 @@ export default function Footer() {
             <Image
               src="/brand/react-logo-black.png"
               alt="REACT Studio"
-              width={176}
-              height={35}
-              className="mb-4 h-auto w-36 invert"
+              width={106}
+              height={21}
+              className="mb-4 h-auto w-[5.4rem] invert"
             />
             <p className="max-w-xs text-sm leading-relaxed text-white/30">
               Music videos, dance films, live clips,

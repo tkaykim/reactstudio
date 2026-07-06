@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, FileUp, Loader2, Plus, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronDown, FileUp, Loader2, Plus, Send, Trash2 } from 'lucide-react';
 import {
   STAFF_APPLICANT_TYPES,
   STAFF_CAPABILITY_OPTIONS,
@@ -118,6 +118,15 @@ const initialCapabilityDetails = STAFF_CAPABILITY_OPTIONS.reduce(
   {} as Record<StaffCapability, CapabilityDetail>
 );
 
+const STAFF_FORM_STEPS = [
+  { label: '기본 정보', eyebrow: '01 Identity', helper: '유형과 연락처' },
+  { label: '대분류 역량', eyebrow: '02 Capability', helper: '가능 업무' },
+  { label: '세부 스킬', eyebrow: '03 Skill', helper: '경력과 대표작' },
+  { label: '단가 기준', eyebrow: '04 Rate', helper: '러프한 범위' },
+  { label: '포트폴리오', eyebrow: '05 Portfolio', helper: '링크와 장비' },
+  { label: '첨부파일', eyebrow: '06 Files', helper: '선택 제출' },
+] as const;
+
 function makeSkillDraft(group: StaffSkillGroup = 'shooting'): SkillDraft {
   return {
     id: crypto.randomUUID(),
@@ -190,6 +199,7 @@ function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
 
 export default function StaffApplyForm() {
   const [form, setForm] = useState<FormState>(initialForm);
+  const [currentStep, setCurrentStep] = useState(0);
   const [selectedCapabilities, setSelectedCapabilities] = useState<StaffCapability[]>([]);
   const [capabilityDetails, setCapabilityDetails] = useState(initialCapabilityDetails);
   const [skillDrafts, setSkillDrafts] = useState<SkillDraft[]>([makeSkillDraft('shooting')]);
@@ -197,8 +207,11 @@ export default function StaffApplyForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const formTopRef = useRef<HTMLDivElement>(null);
   const businessLicenseRef = useRef<HTMLInputElement>(null);
   const portfolioFilesRef = useRef<HTMLInputElement>(null);
+  const lastStepIndex = STAFF_FORM_STEPS.length - 1;
+  const currentStepInfo = STAFF_FORM_STEPS[currentStep];
 
   const skillNames = useMemo(
     () => Array.from(new Set(STAFF_SKILL_GROUPS.flatMap((group) => group.skills))).sort(),
@@ -222,6 +235,15 @@ export default function StaffApplyForm() {
       ...prev,
       [category]: { ...prev[category], ...patch },
     }));
+  }
+
+  function moveToStep(step: number) {
+    const nextStep = Math.max(0, Math.min(step, lastStepIndex));
+    setCurrentStep(nextStep);
+    setError('');
+    window.setTimeout(() => {
+      formTopRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }, 0);
   }
 
   async function handleSubmit() {
@@ -344,7 +366,51 @@ export default function StaffApplyForm() {
   }
 
   return (
-    <div className="space-y-8">
+    <div ref={formTopRef} className="space-y-6">
+      <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">
+              {currentStepInfo.eyebrow}
+            </p>
+            <p className="mt-1 text-lg font-black text-white">{currentStepInfo.label}</p>
+          </div>
+          <p className="shrink-0 text-xs font-bold text-white/40">
+            {currentStep + 1} / {STAFF_FORM_STEPS.length}
+          </p>
+        </div>
+        <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-brand transition-all duration-300"
+            style={{ width: `${((currentStep + 1) / STAFF_FORM_STEPS.length) * 100}%` }}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          {STAFF_FORM_STEPS.map((step, index) => {
+            const active = index === currentStep;
+            const done = index < currentStep;
+            return (
+              <button
+                key={step.label}
+                type="button"
+                onClick={() => moveToStep(index)}
+                className={`rounded border px-3 py-2 text-left transition ${
+                  active
+                    ? 'border-brand bg-brand/10 text-white'
+                    : done
+                      ? 'border-white/15 bg-white/[0.04] text-white/65'
+                      : 'border-white/10 bg-black/20 text-white/35 hover:border-white/20 hover:text-white/55'
+                }`}
+              >
+                <span className="block text-xs font-bold">{step.label}</span>
+                <span className="mt-0.5 block text-[11px]">{step.helper}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {currentStep === 0 && (
       <section className="border-y border-white/10 py-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
@@ -478,7 +544,9 @@ export default function StaffApplyForm() {
           </div>
         </div>
       </section>
+      )}
 
+      {currentStep === 1 && (
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">02 Capability</p>
@@ -583,7 +651,9 @@ export default function StaffApplyForm() {
           </div>
         )}
       </section>
+      )}
 
+      {currentStep === 2 && (
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
@@ -783,7 +853,9 @@ export default function StaffApplyForm() {
           ))}
         </div>
       </section>
+      )}
 
+      {currentStep === 3 && (
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
@@ -964,7 +1036,9 @@ export default function StaffApplyForm() {
           ))}
         </div>
       </section>
+      )}
 
+      {currentStep === 4 && (
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">05 Portfolio & Tools</p>
@@ -1046,7 +1120,9 @@ export default function StaffApplyForm() {
           </div>
         </div>
       </section>
+      )}
 
+      {currentStep === 5 && (
       <section className="pb-4">
         <div className="mb-5">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">06 Files</p>
@@ -1071,18 +1147,41 @@ export default function StaffApplyForm() {
           </label>
         </div>
 
-        {error && (
-          <div className="mt-6 rounded-md border border-red-300/20 bg-red-300/10 p-4 text-sm text-red-100">
-            {error}
-          </div>
-        )}
+      </section>
+      )}
 
-        <div className="mt-8 flex items-center justify-end gap-3">
+      {error && (
+        <div className="rounded-md border border-red-300/20 bg-red-300/10 p-4 text-sm text-red-100">
+          {error}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-5">
+        <button
+          type="button"
+          onClick={() => moveToStep(currentStep - 1)}
+          disabled={currentStep === 0 || submitting}
+          className="inline-flex h-11 min-w-24 items-center justify-center gap-2 rounded-md border border-white/10 px-4 text-sm font-bold text-white/55 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          <ArrowLeft size={16} />
+          이전
+        </button>
+
+        {currentStep < lastStepIndex ? (
+          <button
+            type="button"
+            onClick={() => moveToStep(currentStep + 1)}
+            className="inline-flex h-11 min-w-28 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-black text-black transition hover:bg-brand hover:text-white"
+          >
+            다음
+            <ArrowRight size={16} />
+          </button>
+        ) : (
           <button
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="inline-flex min-w-44 items-center justify-center gap-2 rounded-md bg-brand px-6 py-3 text-sm font-black text-white transition hover:bg-[#ff6a2b] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 min-w-40 items-center justify-center gap-2 rounded-md bg-brand px-5 text-sm font-black text-white transition hover:bg-[#ff6a2b] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? (
               <>
@@ -1094,8 +1193,8 @@ export default function StaffApplyForm() {
               </>
             )}
           </button>
-        </div>
-      </section>
+        )}
+      </div>
     </div>
   );
 }
