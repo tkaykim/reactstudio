@@ -35,19 +35,19 @@ export default function StaffApplyPage() {
                 Staff Pool
               </p>
               <h1 className="mt-4 max-w-xl text-4xl font-black leading-tight tracking-normal text-white sm:text-6xl">
-                같이 만들 사람들을 제대로 기록해두려 합니다.
+                REACT와 함께할 제작 파트너를 모집합니다.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-white/55">
                 제작사, 팀, 개인 모두 지원할 수 있습니다.
                 <br />
-                기획, 촬영, 편집, 모션그래픽, 생성형 AI, 실시간 송출, 장비와 단가 기준까지 함께 정리합니다.
+                가능한 업무, 경력, 장비, 툴, 단가 기준을 남겨주시면 프로젝트별로 검토하겠습니다.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-white/10 bg-white/10">
               {[
                 ['Multiple', '중복 역량 허용'],
-                ['Evidence', '대표작과 경력 기록'],
+                ['Evidence', '대표작과 경력 확인'],
                 ['Rates', '단가 기준 검색'],
                 ['Private', '관리자 전용 열람'],
               ].map(([title, body]) => (

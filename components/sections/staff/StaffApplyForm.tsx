@@ -388,7 +388,7 @@ export default function StaffApplyForm() {
             <TextInput
               value={form.display_name}
               onChange={(e) => update('display_name', e.target.value)}
-              placeholder="REACT가 찾을 때 기억할 이름"
+              placeholder={form.applicant_type === 'company' ? '회사명' : '이름 또는 팀명'}
             />
           </div>
           <div>
