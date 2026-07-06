@@ -3,13 +3,13 @@ import Image from 'next/image';
 import StaffApplyForm from '@/components/sections/staff/StaffApplyForm';
 
 export const metadata: Metadata = {
-  title: 'REACT 스탭풀 지원',
+  title: 'REACT 제작 파트너 지원',
   description:
-    'REACT Studio와 함께할 제작사, 팀, 개인 스탭을 모집합니다. 기획, 촬영, 편집, 모션그래픽, 생성형 AI, 송출, 장비와 단가 정보를 접수합니다.',
+    'REACT Studio와 함께할 제작사, 팀, 개인 스탭을 모집합니다. 가능한 업무, 경력, 장비, 툴, 금액 기준을 남겨 주세요.',
   alternates: { canonical: '/staff/apply' },
   openGraph: {
-    title: 'REACT 스탭풀 지원',
-    description: '영상 제작 스탭풀 지원서. 세부 스킬, 경력, 장비, 툴, 단가 기준을 등록해 주세요.',
+    title: 'REACT 제작 파트너 지원',
+    description: '영상 제작 파트너 지원서. 가능한 업무, 경력, 장비, 툴, 금액 기준을 남겨 주세요.',
     images: ['/opengraph-image'],
   },
 };
@@ -31,31 +31,24 @@ export default function StaffApplyPage() {
                   className="h-auto w-44 sm:w-52"
                 />
               </div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand">
-                Staff Pool
-              </p>
+              <p className="text-sm font-semibold text-brand">제작 파트너 지원</p>
               <h1 className="mt-4 max-w-xl text-4xl font-black leading-tight tracking-normal text-white sm:text-6xl">
                 REACT와 함께할 제작 파트너를 모집합니다.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-white/55">
                 제작사, 팀, 개인 모두 지원할 수 있습니다.
                 <br />
-                가능한 업무, 경력, 장비, 툴, 단가 기준을 남겨주시면 프로젝트별로 검토하겠습니다.
+                가능한 업무, 경력, 장비, 툴, 대략적인 금액 기준을 남겨주시면 프로젝트별로 검토하겠습니다.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-white/10 bg-white/10">
-              {[
-                ['Multiple', '중복 역량 허용'],
-                ['Evidence', '대표작과 경력 확인'],
-                ['Rates', '단가 기준 검색'],
-                ['Private', '관리자 전용 열람'],
-              ].map(([title, body]) => (
-                <div key={title} className="bg-black p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand">{title}</p>
-                  <p className="mt-2 text-sm text-white/55">{body}</p>
-                </div>
-              ))}
+            <div className="rounded-md border border-white/10 bg-white/[0.03] p-5">
+              <p className="text-sm font-bold text-white">지원 전에 준비해 주세요.</p>
+              <div className="mt-4 space-y-2 text-sm leading-relaxed text-white/50">
+                <p>연락 가능한 정보와 활동 지역</p>
+                <p>가능한 업무와 최근 작업 링크</p>
+                <p>사용하는 장비, 툴, 대략적인 금액 기준</p>
+              </div>
             </div>
           </div>
 

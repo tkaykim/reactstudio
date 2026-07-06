@@ -60,7 +60,7 @@ export default function MobileNav({ links, isOpen, onClose, currentPath }: Mobil
             onClick={onClose}
             className="block w-full rounded border border-white/10 px-4 py-3 text-center font-semibold text-white/75 transition-colors hover:border-brand/50 hover:text-white"
           >
-            스탭풀 지원
+            제작 파트너 지원
           </Link>
           <Link
             href="/start"

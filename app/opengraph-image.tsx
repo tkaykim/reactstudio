@@ -67,7 +67,7 @@ export default function OgImage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ fontSize: 40, fontWeight: 900 }}>REACT Studio</div>
               <div style={{ fontSize: 18, color: 'rgba(255,255,255,0.52)' }}>
-                Film Production & Staff Pool
+                Film Production Partners
               </div>
             </div>
           </div>

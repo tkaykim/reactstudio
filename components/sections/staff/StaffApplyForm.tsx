@@ -119,12 +119,12 @@ const initialCapabilityDetails = STAFF_CAPABILITY_OPTIONS.reduce(
 );
 
 const STAFF_FORM_STEPS = [
-  { label: '기본 정보', eyebrow: '01 Identity', helper: '유형과 연락처' },
-  { label: '대분류 역량', eyebrow: '02 Capability', helper: '가능 업무' },
-  { label: '세부 스킬', eyebrow: '03 Skill', helper: '경력과 대표작' },
-  { label: '단가 기준', eyebrow: '04 Rate', helper: '러프한 범위' },
-  { label: '포트폴리오', eyebrow: '05 Portfolio', helper: '링크와 장비' },
-  { label: '첨부파일', eyebrow: '06 Files', helper: '선택 제출' },
+  { label: '기본 정보', helper: '유형과 연락처' },
+  { label: '가능한 업무', helper: '할 수 있는 일' },
+  { label: '세부 경력', helper: '경력과 대표작' },
+  { label: '금액 기준', helper: '대략적인 범위' },
+  { label: '포트폴리오', helper: '링크와 장비' },
+  { label: '첨부파일', helper: '선택 제출' },
 ] as const;
 
 function makeSkillDraft(group: StaffSkillGroup = 'shooting'): SkillDraft {
@@ -356,10 +356,10 @@ export default function StaffApplyForm() {
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-300/10">
           <Check className="text-emerald-200" size={38} />
         </div>
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-brand">Submitted</p>
-        <h2 className="text-3xl font-black text-white">스탭풀 지원이 접수됐습니다.</h2>
+        <p className="mb-3 text-sm font-semibold text-brand">접수 완료</p>
+        <h2 className="text-3xl font-black text-white">지원서가 접수됐습니다.</h2>
         <p className="mt-4 text-sm leading-relaxed text-white/55">
-          보내주신 역량, 경력, 단가 정보를 검토한 뒤 프로젝트 조건이 맞을 때 연락드리겠습니다.
+          보내주신 업무 범위, 경력, 금액 기준을 검토한 뒤 프로젝트 조건이 맞을 때 연락드리겠습니다.
         </p>
       </div>
     );
@@ -370,9 +370,7 @@ export default function StaffApplyForm() {
       <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">
-              {currentStepInfo.eyebrow}
-            </p>
+            <p className="text-[11px] font-semibold text-brand">{currentStep + 1}단계</p>
             <p className="mt-1 text-lg font-black text-white">{currentStepInfo.label}</p>
           </div>
           <p className="shrink-0 text-xs font-bold text-white/40">
@@ -414,7 +412,7 @@ export default function StaffApplyForm() {
       <section className="border-y border-white/10 py-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">01 Identity</p>
+            <p className="text-xs font-semibold text-brand">1단계</p>
             <h2 className="mt-2 text-2xl font-black text-white">지원자 정보</h2>
           </div>
           <p className="hidden max-w-xs text-right text-xs leading-relaxed text-white/40 sm:block">
@@ -549,10 +547,10 @@ export default function StaffApplyForm() {
       {currentStep === 1 && (
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">02 Capability</p>
-          <h2 className="mt-2 text-2xl font-black text-white">대분류 역량</h2>
+          <p className="text-xs font-semibold text-brand">2단계</p>
+          <h2 className="mt-2 text-2xl font-black text-white">가능한 업무</h2>
           <p className="mt-2 text-sm text-white/45">
-            중복 선택이 가능합니다.
+            해당하는 업무를 모두 선택해 주세요.
           </p>
         </div>
 
@@ -657,10 +655,10 @@ export default function StaffApplyForm() {
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">03 Skill Evidence</p>
+            <p className="text-xs font-semibold text-brand">3단계</p>
             <h2 className="mt-2 text-2xl font-black text-white">세부 스킬과 경력</h2>
             <p className="mt-2 text-sm text-white/45">
-              촬영, 편집, OAP, 송출처럼 세분화해서 나중에 검색할 수 있게 받습니다.
+              촬영, 편집, OAP, 송출처럼 실제로 맡을 수 있는 작업을 자세히 적어주세요.
             </p>
           </div>
           <button
@@ -706,7 +704,7 @@ export default function StaffApplyForm() {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <FieldLabel>대분류</FieldLabel>
+                  <FieldLabel>업무 구분</FieldLabel>
                   <SelectInput
                     value={draft.group}
                     onChange={(e) =>
@@ -740,7 +738,7 @@ export default function StaffApplyForm() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>경력 레벨</FieldLabel>
+                  <FieldLabel>경력 수준</FieldLabel>
                   <SelectInput
                     value={draft.experience_level}
                     onChange={(e) =>
@@ -822,7 +820,7 @@ export default function StaffApplyForm() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <FieldLabel>수행 역할과 증거</FieldLabel>
+                  <FieldLabel>맡았던 역할</FieldLabel>
                   <TextArea
                     rows={2}
                     value={draft.role_detail}
@@ -859,10 +857,10 @@ export default function StaffApplyForm() {
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">04 Rate</p>
-            <h2 className="mt-2 text-2xl font-black text-white">단가 기준</h2>
+            <p className="text-xs font-semibold text-brand">4단계</p>
+            <h2 className="mt-2 text-2xl font-black text-white">금액 기준</h2>
             <p className="mt-2 text-sm text-white/45">
-              확정 견적이 아니라 내부 검색과 섭외 기준을 위한 러프한 범위입니다.
+              정확한 견적이 아니어도 괜찮습니다. 평소 기준으로 편하게 적어주세요.
             </p>
           </div>
           <button
@@ -870,7 +868,7 @@ export default function StaffApplyForm() {
             onClick={() => setRateDrafts((prev) => [...prev, makeRateDraft('shooting')])}
             className="inline-flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-xs font-bold text-white/70 transition hover:border-brand/50 hover:text-white"
           >
-            <Plus size={14} /> 단가 추가
+            <Plus size={14} /> 금액 기준 추가
           </button>
         </div>
 
@@ -878,13 +876,13 @@ export default function StaffApplyForm() {
           {rateDrafts.map((draft, index) => (
             <div key={draft.id} className="rounded-md border border-white/10 bg-white/[0.025] p-4">
               <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">단가 카드 {index + 1}</span>
+                <span className="text-sm font-bold text-white">금액 기준 {index + 1}</span>
                 {rateDrafts.length > 1 && (
                   <button
                     type="button"
                     onClick={() => setRateDrafts((prev) => prev.filter((item) => item.id !== draft.id))}
                     className="rounded p-1.5 text-white/35 transition hover:bg-red-400/10 hover:text-red-200"
-                    aria-label="단가 삭제"
+                    aria-label="금액 기준 삭제"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -892,7 +890,7 @@ export default function StaffApplyForm() {
               </div>
               <div className="grid gap-4 md:grid-cols-4">
                 <div>
-                  <FieldLabel>대분류</FieldLabel>
+                  <FieldLabel>업무 구분</FieldLabel>
                   <SelectInput
                     value={draft.skill_group}
                     onChange={(e) =>
@@ -1019,7 +1017,7 @@ export default function StaffApplyForm() {
                   </button>
                 </div>
                 <div className="md:col-span-4">
-                  <FieldLabel>단가 조건</FieldLabel>
+                  <FieldLabel>금액 관련 조건</FieldLabel>
                   <TextArea
                     rows={2}
                     value={draft.notes}
@@ -1041,7 +1039,7 @@ export default function StaffApplyForm() {
       {currentStep === 4 && (
       <section className="border-b border-white/10 pb-8">
         <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">05 Portfolio & Tools</p>
+          <p className="text-xs font-semibold text-brand">5단계</p>
           <h2 className="mt-2 text-2xl font-black text-white">포트폴리오와 장비</h2>
         </div>
 
@@ -1125,10 +1123,10 @@ export default function StaffApplyForm() {
       {currentStep === 5 && (
       <section className="pb-4">
         <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">06 Files</p>
+          <p className="text-xs font-semibold text-brand">6단계</p>
           <h2 className="mt-2 text-2xl font-black text-white">첨부파일</h2>
           <p className="mt-2 text-sm text-white/45">
-            파일은 공개되지 않고 REACT 관리자만 확인합니다.
+            첨부한 파일은 외부에 공개되지 않습니다.
           </p>
         </div>
 
