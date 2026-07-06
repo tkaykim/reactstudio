@@ -69,7 +69,13 @@ export default function AdminSignupPage() {
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Image src="/logo.svg" alt="React Studio" width={160} height={32} className="mx-auto mb-2" />
+          <Image
+            src="/brand/react-logo-black.png"
+            alt="React Studio"
+            width={180}
+            height={36}
+            className="mx-auto mb-2 h-auto w-40 invert"
+          />
           <p className="text-white/30 text-sm">관리자 회원가입 신청</p>
         </div>
 

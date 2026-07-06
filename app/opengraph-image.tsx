@@ -10,95 +10,96 @@ export default function OgImage() {
     (
       <div
         style={{
-          background: 'linear-gradient(135deg, #000000 0%, #1a1a1a 100%)',
+          background: '#050505',
           width: '100%',
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
           fontFamily: 'sans-serif',
+          padding: 72,
+          color: '#ffffff',
+          position: 'relative',
         }}
       >
-        {/* Orange accent bar */}
         <div
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            right: 0,
-            height: 6,
+            width: '100%',
+            height: 8,
             background: '#FF4D00',
           }}
         />
 
-        {/* Logo text */}
-        <div
-          style={{
-            fontSize: 72,
-            fontWeight: 900,
-            color: '#ffffff',
-            letterSpacing: '-2px',
-            marginBottom: 16,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-          }}
-        >
-          <span style={{ color: '#FF4D00' }}>R</span>
-          <span>eact Studio</span>
-        </div>
-
-        {/* Tagline */}
-        <div
-          style={{
-            fontSize: 28,
-            color: 'rgba(255,255,255,0.7)',
-            marginBottom: 40,
-          }}
-        >
-          영상 프로덕션
-        </div>
-
-        {/* Service tags */}
         <div
           style={{
             display: 'flex',
-            gap: 16,
-            flexWrap: 'wrap',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: 26,
           }}
         >
-          {['뮤직비디오', '댄스비디오', '퍼포먼스', '라이브 클립', '웹예능'].map(
-            (tag) => (
-              <div
-                key={tag}
-                style={{
-                  padding: '10px 24px',
-                  borderRadius: 999,
-                  border: '1px solid rgba(255,77,0,0.4)',
-                  background: 'rgba(255,77,0,0.1)',
-                  color: '#FF4D00',
-                  fontSize: 20,
-                  fontWeight: 600,
-                }}
-              >
-                {tag}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 18,
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                background: '#FF4D00',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 10,
+                color: '#ffffff',
+                fontSize: 40,
+                fontWeight: 900,
+              }}
+            >
+              R
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ fontSize: 40, fontWeight: 900 }}>REACT Studio</div>
+              <div style={{ fontSize: 18, color: 'rgba(255,255,255,0.52)' }}>
+                Film Production & Staff Pool
               </div>
-            )
-          )}
+            </div>
+          </div>
+
+          <div style={{ fontSize: 76, fontWeight: 900, lineHeight: 1.08, maxWidth: 920 }}>
+            기획, 촬영, 편집, 모션그래픽까지 이어지는 제작 네트워크.
+          </div>
         </div>
 
-        {/* Bottom tagline */}
         <div
           style={{
-            position: 'absolute',
-            bottom: 40,
-            fontSize: 18,
-            color: 'rgba(255,255,255,0.4)',
+            display: 'flex',
+            gap: 14,
+            flexWrap: 'wrap',
           }}
         >
-          예산에 맞춘 유연한 제작 · 기획부터 납품까지 원스톱
+          {['공연 영상', '예능 촬영', '짐벌·지미집', 'OAP·CG', 'AI 영상', '실시간 송출'].map((tag) => (
+            <div
+              key={tag}
+              style={{
+                padding: '11px 20px',
+                borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.14)',
+                background: tag === 'AI 영상' ? 'rgba(0, 209, 255, 0.16)' : 'rgba(255,255,255,0.06)',
+                color: tag === 'AI 영상' ? '#9EEBFF' : 'rgba(255,255,255,0.78)',
+                fontSize: 22,
+                fontWeight: 700,
+              }}
+            >
+              {tag}
+            </div>
+          ))}
         </div>
       </div>
     ),

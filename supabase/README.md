@@ -4,7 +4,7 @@
 
 ## 파일 구조
 
-- `schema_.sql` — reactstudio가 소유한 테이블(`inquiries`, `quotes`, `contracts`, `agreements`)과 공유 테이블 `financial_entries`의 reactstudio 확장 컬럼/인덱스를 DDL 형태로 박제한 **컨텍스트 전용** 스냅샷. `WARNING: not meant to be run` 헤더가 붙어 있습니다.
+- `schema_.sql` — reactstudio가 소유한 테이블(`inquiries`, `quotes`, `contracts`, `agreements`, `react_staff_*`)과 공유 테이블 `financial_entries`의 reactstudio 확장 컬럼/인덱스를 DDL 형태로 박제한 **컨텍스트 전용** 스냅샷. `WARNING: not meant to be run` 헤더가 붙어 있습니다.
 - `migrations/` — reactstudio가 적용하는 새 마이그레이션을 시간순으로 누적합니다. ERP 마이그레이션은 `totalmanagements/supabase/migrations/`에 그대로 둡니다.
 
 ## 책임 분담
@@ -12,6 +12,8 @@
 | 영역 | 담당 레포 | 비고 |
 |------|-----------|------|
 | `inquiries`, `quotes`, `contracts`, `agreements` | reactstudio | ERP는 읽지 않음 |
+| `react_staff_applications`, `react_staff_capabilities`, `react_staff_skill_entries`, `react_staff_rate_cards`, `react_staff_files`, `react_staff_notes` | reactstudio | 공개 지원서 수집과 REACT 관리자 스탭풀 관리 |
+| Storage bucket `react-staff-files` | reactstudio | private bucket, 관리자 signed URL로만 열람 |
 | `financial_entries` 의 reactstudio 확장 컬럼 (`contract_id`, `client_name`, `due_date`, `paid_at`, `payee_app_user_id`, `approved_by`, `approved_at`, `payment_ref`) | reactstudio | ERP API는 select/insert하지 않음 → 영향 0 |
 | `projects`, `partners`, `app_users`, `business_units`, `financial_entries` 코어 컬럼 등 | totalmanagements (ERP) | reactstudio는 **읽기 위주**, 쓰기는 BU=REACT 한정 |
 
@@ -49,7 +51,26 @@ reactstudio가 `financial_entries`에 **쓰기**(INSERT/UPDATE/DELETE)할 때는
 
 새 재무 API를 추가할 때도 위 표의 가드를 모두 따릅니다.
 
-`partners` 테이블은 reactstudio에서 **읽기만** 합니다 (`is_active=true`로 검색). 쓰기 경로 신설 금지.
+`partners` 테이블은 reactstudio에서 기본적으로 **읽기 위주**입니다 (`is_active=true`로 검색).
+
+예외적으로 `/api/admin/staff-pool/[id]/convert`는 REACT 관리자 권한과 `bu_code='REACT'` 가드 아래 스탭풀 지원자를 `partners` 행으로 전환합니다.
+
+이 전환은 `metadata.source='react_staff_pool'`와 `metadata.staff_application_id`를 남겨 출처를 추적합니다.
+
+### 1.1 스탭풀 수집 모델 (2026-07-06)
+
+세부 역량과 단가는 지원자 1명당 여러 개를 받을 수 있으므로, 한 컬럼에 뭉치지 않고 하위 테이블로 분리합니다.
+
+| 테이블 | 역할 |
+|--------|------|
+| `react_staff_applications` | 제작사, 팀, 개인 기본 정보, 장비 현황 줄글 원문, 검색용 태그 |
+| `react_staff_capabilities` | 기획, 촬영, 편집, 모션, CG, AI 같은 대분류 역량 |
+| `react_staff_skill_entries` | 짐벌, 지미집, 초편, 디자인 자막, OAP, 실시간 송출 같은 세부 스킬과 경력 증거 |
+| `react_staff_rate_cards` | 스킬별 rough 단가 범위와 장비 포함 여부 |
+| `react_staff_files` | 사업자등록증과 포트폴리오 파일 메타데이터 |
+| `react_staff_notes` | 관리자 검토 메모 |
+
+신규 `react_staff_*` 테이블은 모두 RLS enabled 상태이며, 현재 앱 서버는 service role 경로로만 읽고 씁니다.
 
 ### 2. 프로젝트명 단일 진실원 (Phase 4 — DB 변경 없음)
 

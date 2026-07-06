@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
@@ -11,19 +11,16 @@ const ALLOWED_BU_CODES = ['REACT', 'HEAD'];
 const ALLOWED_ROLES = ['admin', 'leader', 'manager'];
 
 export default function AdminLoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const unauthorized = searchParams.get('error') === 'unauthorized';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams.get('error') === 'unauthorized') {
-      setError('관리자 권한이 없습니다. 담당자에게 문의하세요.');
-    }
-  }, [searchParams]);
+  const [error, setError] = useState(
+    unauthorized ? '관리자 권한이 없습니다. 담당자에게 문의하세요.' : ''
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +64,13 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo.svg" alt="React Studio" width={160} height={32} className="mx-auto mb-2" />
+          <Image
+            src="/brand/react-logo-black.png"
+            alt="React Studio"
+            width={180}
+            height={36}
+            className="mx-auto mb-2 h-auto w-40 invert"
+          />
           <p className="text-white/30 text-sm">관리자 로그인</p>
         </div>
 

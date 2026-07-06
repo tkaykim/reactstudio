@@ -11,6 +11,7 @@ const navLinks = [
   { href: '/portfolio', label: 'Works' },
   { href: '/services', label: 'Services' },
   { href: '/about', label: 'About' },
+  { href: '/staff/apply', label: 'Staff Pool' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -37,7 +38,14 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.svg" alt="React Studio" width={140} height={28} priority />
+              <Image
+                src="/brand/react-logo-black.png"
+                alt="REACT Studio"
+                width={176}
+                height={35}
+                priority
+                className="h-auto w-32 invert sm:w-40"
+              />
             </Link>
 
             <nav className="hidden md:flex items-center gap-8">
