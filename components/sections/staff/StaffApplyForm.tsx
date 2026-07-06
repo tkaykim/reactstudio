@@ -383,7 +383,7 @@ export default function StaffApplyForm() {
             style={{ width: `${((currentStep + 1) / STAFF_FORM_STEPS.length) * 100}%` }}
           />
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 xl:grid-cols-6">
           {STAFF_FORM_STEPS.map((step, index) => {
             const active = index === currentStep;
             const done = index < currentStep;
@@ -392,7 +392,7 @@ export default function StaffApplyForm() {
                 key={step.label}
                 type="button"
                 onClick={() => moveToStep(index)}
-                className={`rounded border px-3 py-2 text-left transition ${
+                className={`min-w-24 shrink-0 rounded border px-3 py-2 text-left transition sm:min-w-0 ${
                   active
                     ? 'border-brand bg-brand/10 text-white'
                     : done
@@ -401,7 +401,7 @@ export default function StaffApplyForm() {
                 }`}
               >
                 <span className="block text-xs font-bold">{step.label}</span>
-                <span className="mt-0.5 block text-[11px]">{step.helper}</span>
+                <span className="mt-0.5 hidden text-[11px] sm:block">{step.helper}</span>
               </button>
             );
           })}
@@ -409,14 +409,14 @@ export default function StaffApplyForm() {
       </div>
 
       {currentStep === 0 && (
-      <section className="border-y border-white/10 py-8">
+      <section className="border-y border-white/10 py-6 sm:py-8">
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold text-brand">1단계</p>
             <h2 className="mt-2 text-2xl font-black text-white">지원자 정보</h2>
           </div>
           <p className="hidden max-w-xs text-right text-xs leading-relaxed text-white/40 sm:block">
-            제작사와 개인 모두 같은 풀에서 관리되며, 유형에 따라 필요한 정보만 다르게 받습니다.
+            지원 유형에 따라 필요한 정보만 작성해 주세요.
           </p>
         </div>
 
