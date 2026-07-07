@@ -79,6 +79,9 @@ export async function POST(req: NextRequest) {
       formData.get('rate_cards'),
       []
     );
+    const availabilityToken = typeof formData.get('availability_token') === 'string'
+      ? String(formData.get('availability_token')).trim()
+      : '';
 
     if (!application) {
       return NextResponse.json({ error: '지원서 정보가 비어 있습니다.' }, { status: 400 });
@@ -226,6 +229,15 @@ export async function POST(req: NextRequest) {
     if (rateRows.length) {
       const { error } = await supabase.from('react_staff_rate_cards').insert(rateRows);
       if (error) console.error('[staff/apply] rate insert failed', error);
+    }
+
+    if (availabilityToken) {
+      const { error } = await supabase
+        .from('react_staff_availability_polls')
+        .update({ application_id: applicationId })
+        .eq('token', availabilityToken)
+        .eq('bu_code', CURRENT_BU_CODE);
+      if (error) console.error('[staff/apply] availability link failed', error);
     }
 
     for (const upload of uploads) {

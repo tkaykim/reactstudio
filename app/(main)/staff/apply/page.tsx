@@ -13,7 +13,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function StaffApplyPage() {
+type StaffApplyPageProps = {
+  searchParams?: Promise<{
+    availability_token?: string;
+  }>;
+};
+
+export default async function StaffApplyPage({ searchParams }: StaffApplyPageProps) {
+  const params = await searchParams;
+  const availabilityToken = params?.availability_token?.trim() || '';
+
   return (
     <div className="min-h-screen bg-black pt-16 text-white">
       <section className="border-b border-white/10 pb-10">
@@ -36,7 +45,7 @@ export default function StaffApplyPage() {
           </div>
 
           <div className="-mx-4 border-y border-white/10 bg-[#080808] px-4 py-5 sm:mx-0 sm:rounded-md sm:border sm:p-6 lg:p-8">
-            <StaffApplyForm />
+            <StaffApplyForm availabilityToken={availabilityToken} />
           </div>
         </div>
       </section>

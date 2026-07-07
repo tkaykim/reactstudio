@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChevronDown, FileUp, Loader2, Plus, Send, Trash2 } from 'lucide-react';
 import {
   STAFF_APPLICANT_TYPES,
@@ -77,6 +77,13 @@ type FormState = {
   equipment_detail: string;
   tools: string;
   ai_tools: string;
+};
+
+type StaffApplyPrefill = {
+  already_registered?: boolean;
+  source_subject?: string;
+  application?: Partial<FormState>;
+  capabilities?: StaffCapability[];
 };
 
 const initialForm: FormState = {
@@ -197,7 +204,7 @@ function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   );
 }
 
-export default function StaffApplyForm() {
+export default function StaffApplyForm({ availabilityToken = '' }: { availabilityToken?: string }) {
   const [form, setForm] = useState<FormState>(initialForm);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCapabilities, setSelectedCapabilities] = useState<StaffCapability[]>([]);
@@ -207,11 +214,46 @@ export default function StaffApplyForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [prefillLoading, setPrefillLoading] = useState(false);
+  const [prefillLoaded, setPrefillLoaded] = useState(false);
   const formTopRef = useRef<HTMLDivElement>(null);
   const businessLicenseRef = useRef<HTMLInputElement>(null);
   const portfolioFilesRef = useRef<HTMLInputElement>(null);
   const lastStepIndex = STAFF_FORM_STEPS.length - 1;
   const currentStepInfo = STAFF_FORM_STEPS[currentStep];
+
+  useEffect(() => {
+    if (!availabilityToken) return;
+    let alive = true;
+    setPrefillLoading(true);
+    fetch(`/api/staff/apply/prefill?token=${encodeURIComponent(availabilityToken)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((result: { prefill?: StaffApplyPrefill } | null) => {
+        if (!alive || !result?.prefill) return;
+        const prefill = result.prefill;
+        if (prefill.application) {
+          setForm((prev) => ({
+            ...prev,
+            ...Object.fromEntries(
+              Object.entries(prefill.application ?? {}).filter(([, value]) => value !== undefined && value !== null && value !== '')
+            ),
+          }));
+        }
+        if (prefill.capabilities?.length) {
+          setSelectedCapabilities((prev) => Array.from(new Set([...prev, ...prefill.capabilities!])));
+        }
+        setPrefillLoaded(true);
+      })
+      .catch(() => {
+        if (alive) setPrefillLoaded(false);
+      })
+      .finally(() => {
+        if (alive) setPrefillLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [availabilityToken]);
 
   const skillNames = useMemo(
     () => Array.from(new Set(STAFF_SKILL_GROUPS.flatMap((group) => group.skills))).sort(),
@@ -327,6 +369,7 @@ export default function StaffApplyForm() {
     body.set('capabilities', JSON.stringify(capabilities));
     body.set('skill_entries', JSON.stringify(skill_entries));
     body.set('rate_cards', JSON.stringify(rate_cards));
+    if (availabilityToken) body.set('availability_token', availabilityToken);
 
     Array.from(businessLicenseRef.current?.files ?? []).forEach((file) => {
       body.append('business_license', file);
@@ -367,6 +410,14 @@ export default function StaffApplyForm() {
 
   return (
     <div ref={formTopRef} className="space-y-6">
+      {(prefillLoading || prefillLoaded) && (
+        <div className="rounded-md border border-brand/20 bg-brand/10 p-3 text-sm leading-relaxed text-white/70">
+          {prefillLoading
+            ? '보내주신 메일 내용을 불러오는 중입니다.'
+            : '보내주신 메일 내용을 바탕으로 일부 항목을 먼저 채웠습니다. 필요한 부분만 확인하거나 수정해 주세요.'}
+        </div>
+      )}
+
       <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
