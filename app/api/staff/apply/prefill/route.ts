@@ -58,7 +58,7 @@ function inferApplicantType(text: string): StaffApplicantType {
 function inferCapabilities(text: string): StaffCapability[] {
   const capabilities: StaffCapability[] = [];
   if (/기획|구성안|콘티|프리프로덕션|디렉팅/i.test(text)) capabilities.push('planning');
-  if (/촬영|카메라|짐벌|지미집|드론|멀티캠|조명|감독/i.test(text)) capabilities.push('shooting');
+  if (/촬영|촬감|\bdp\b|fx3|a7s3|카메라|짐벌|지미집|드론|멀티캠|조명|감독/i.test(text)) capabilities.push('shooting');
   if (/편집|프리미어|premiere|다빈치|davinci|컷편집|자막|색보정/i.test(text)) capabilities.push('editing');
   if (/mogrt|템플릿|모션그래픽|after effects|애프터|ae\b/i.test(text)) capabilities.push('template_motion');
   if (/cg|vfx|3d|합성|블렌더|blender|cinema 4d/i.test(text)) capabilities.push('custom_cg');
