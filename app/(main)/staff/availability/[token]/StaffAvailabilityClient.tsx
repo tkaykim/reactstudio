@@ -40,7 +40,6 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
   const [status, setStatus] = useState<PublicAvailabilityStatus>(
     initialPoll.response_status === 'unavailable' ? 'unavailable' : 'available'
   );
-  const [rateNote, setRateNote] = useState(initialPoll.rate_note ?? '');
   const [equipmentNote, setEquipmentNote] = useState(initialPoll.equipment_note ?? '');
   const [message, setMessage] = useState(initialPoll.message ?? '');
   const [busy, setBusy] = useState(false);
@@ -58,7 +57,6 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           response_status: status,
-          rate_note: rateNote,
           equipment_note: equipmentNote,
           message,
         }),
@@ -136,12 +134,6 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             })}
           </div>
 
-          <Field
-            label="금액 기준"
-            value={rateNote}
-            onChange={setRateNote}
-            placeholder="가능한 경우 회차 기준 희망 금액을 남겨주세요."
-          />
           <Field
             label="장비·툴 참고"
             value={equipmentNote}

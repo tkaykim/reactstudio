@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
       response_status: responseStatus,
       available_days: responseStatus === 'available' ? [...REQUIRED_AVAILABILITY_DAYS] : [],
       preferred_time: responseStatus === 'available' ? REQUIRED_AVAILABILITY_TIME : null,
-      rate_note: cleanText(body.rate_note),
+      rate_note: null,
       equipment_note: cleanText(body.equipment_note),
       message: cleanText(body.message, 2000),
       submitted_at: new Date().toISOString(),

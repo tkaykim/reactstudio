@@ -122,7 +122,6 @@ export default async function StaffAvailabilityAdminPage() {
                   </div>
                   <div className="space-y-1 text-xs leading-relaxed text-white/55">
                     <p>일정: {availabilityScheduleLabel(row)}</p>
-                    <p>금액: {row.rate_note || '-'}</p>
                     {row.message && <p className="line-clamp-2">메모: {row.message}</p>}
                   </div>
                   <div className="min-w-0">

@@ -101,7 +101,6 @@ function searchable(row: StaffApplicationRow) {
     ...row.availability_polls.flatMap((poll) => [
       poll.response_status,
       poll.preferred_time,
-      poll.rate_note,
       poll.equipment_note,
       poll.message,
       ...poll.available_days,
@@ -742,7 +741,6 @@ function AvailabilityPollCard({ poll }: { poll: StaffAvailabilityPollRow }) {
       </div>
       <div className="mt-3 grid gap-1 text-xs leading-relaxed text-white/55 sm:grid-cols-2">
         <p>일정: {availabilityScheduleLabel(poll)}</p>
-        <p>금액: {poll.rate_note || '-'}</p>
         <p>장비: {poll.equipment_note || '-'}</p>
       </div>
       {poll.message && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-white/55">{poll.message}</p>}
