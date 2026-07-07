@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase';
 import {
   ageSignalLabel,
-  availabilityDayLabel,
+  availabilityScheduleLabel,
   availabilityStatusLabel,
   STAFF_AVAILABILITY_STATUSES,
   type StaffAvailabilityPollRow,
@@ -68,10 +68,11 @@ export default async function StaffAvailabilityAdminPage() {
             <ArrowLeft size={14} />
             스탭풀로 돌아가기
           </Link>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">Availability</p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-brand">고정 일정</p>
           <h1 className="mt-1 text-2xl font-black text-white">댄스학원 고정건 응답 현황</h1>
           <p className="mt-1 text-xs text-white/40">
-            전체 {counts.total ?? 0}명 · 가능 {counts.available ?? 0}명 · 조율 {counts.maybe ?? 0}명 · 어려움 {counts.unavailable ?? 0}명 · 미응답 {counts.pending ?? 0}명
+            전체 {counts.total ?? 0}명 · 가능 {counts.available ?? 0}명 · 불가능 {counts.unavailable ?? 0}명 · 미응답 {counts.pending ?? 0}명
+            {counts.maybe ? ` · 확인필요 ${counts.maybe}명` : ''}
           </p>
         </div>
       </div>
@@ -120,8 +121,7 @@ export default async function StaffAvailabilityAdminPage() {
                     {row.age_evidence && <p className="mt-1 line-clamp-2 text-xs text-white/35">{row.age_evidence}</p>}
                   </div>
                   <div className="space-y-1 text-xs leading-relaxed text-white/55">
-                    <p>요일: {row.available_days.length ? row.available_days.map(availabilityDayLabel).join(', ') : '-'}</p>
-                    <p>시간: {row.preferred_time || '-'}</p>
+                    <p>일정: {availabilityScheduleLabel(row)}</p>
                     <p>금액: {row.rate_note || '-'}</p>
                     {row.message && <p className="line-clamp-2">메모: {row.message}</p>}
                   </div>

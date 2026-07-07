@@ -30,7 +30,7 @@ import {
   type StaffStatus,
 } from '@/lib/staff-pool';
 import {
-  availabilityDayLabel,
+  availabilityScheduleLabel,
   availabilityStatusLabel,
   STAFF_AVAILABILITY_STATUSES,
   type StaffAvailabilityPollRow,
@@ -741,8 +741,7 @@ function AvailabilityPollCard({ poll }: { poll: StaffAvailabilityPollRow }) {
         </a>
       </div>
       <div className="mt-3 grid gap-1 text-xs leading-relaxed text-white/55 sm:grid-cols-2">
-        <p>요일: {poll.available_days.length ? poll.available_days.map(availabilityDayLabel).join(', ') : '-'}</p>
-        <p>시간: {poll.preferred_time || '-'}</p>
+        <p>일정: {availabilityScheduleLabel(poll)}</p>
         <p>금액: {poll.rate_note || '-'}</p>
         <p>장비: {poll.equipment_note || '-'}</p>
       </div>

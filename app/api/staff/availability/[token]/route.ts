@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase';
 import {
-  STAFF_AVAILABILITY_DAYS,
-  STAFF_AVAILABILITY_STATUSES,
-  type StaffAvailabilityDay,
-  type StaffAvailabilityStatus,
+  REQUIRED_AVAILABILITY_DAYS,
+  REQUIRED_AVAILABILITY_TIME,
 } from '@/lib/staff-availability';
 
 type RouteContext = {
   params: Promise<{ token: string }>;
 };
 
-const allowedStatuses = STAFF_AVAILABILITY_STATUSES
-  .map((item) => item.value)
-  .filter((value) => value !== 'pending') as StaffAvailabilityStatus[];
-const allowedDays: StaffAvailabilityDay[] = STAFF_AVAILABILITY_DAYS.map((item) => item.value);
+const allowedStatuses = ['available', 'unavailable'] as const;
+type PublicAvailabilityStatus = (typeof allowedStatuses)[number];
 
 function cleanText(value: unknown, max = 1000) {
   if (typeof value !== 'string') return null;
@@ -27,17 +23,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const body = await req.json().catch(() => ({} as Record<string, unknown>));
   const responseStatus = body.response_status;
 
-  if (typeof responseStatus !== 'string' || !allowedStatuses.includes(responseStatus as StaffAvailabilityStatus)) {
+  if (typeof responseStatus !== 'string' || !allowedStatuses.includes(responseStatus as PublicAvailabilityStatus)) {
     return NextResponse.json({ error: '응답값이 올바르지 않습니다.' }, { status: 400 });
-  }
-
-  const daysInput: unknown[] = Array.isArray(body.available_days) ? body.available_days : [];
-  const days = daysInput
-    .map(String)
-    .filter((item: string): item is StaffAvailabilityDay => allowedDays.includes(item as StaffAvailabilityDay));
-
-  if ((responseStatus === 'available' || responseStatus === 'maybe') && days.length === 0) {
-    return NextResponse.json({ error: '가능한 요일을 하나 이상 선택해 주세요.' }, { status: 400 });
   }
 
   const supabase = createSupabaseAdminClient();
@@ -56,8 +43,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
     .from('react_staff_availability_polls')
     .update({
       response_status: responseStatus,
-      available_days: responseStatus === 'unavailable' ? [] : days,
-      preferred_time: cleanText(body.preferred_time),
+      available_days: responseStatus === 'available' ? [...REQUIRED_AVAILABILITY_DAYS] : [],
+      preferred_time: responseStatus === 'available' ? REQUIRED_AVAILABILITY_TIME : null,
       rate_note: cleanText(body.rate_note),
       equipment_note: cleanText(body.equipment_note),
       message: cleanText(body.message, 2000),

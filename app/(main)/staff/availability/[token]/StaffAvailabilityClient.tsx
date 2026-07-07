@@ -2,54 +2,44 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Clock3, Send, XCircle } from 'lucide-react';
+import { CheckCircle2, Send, XCircle } from 'lucide-react';
 import {
-  STAFF_AVAILABILITY_DAYS,
   STAFF_AVAILABILITY_PROJECT,
-  availabilityDayLabel,
   availabilityStatusLabel,
-  type StaffAvailabilityDay,
   type StaffAvailabilityPollRow,
-  type StaffAvailabilityStatus,
 } from '@/lib/staff-availability';
 
 function cls(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ');
 }
 
+type PublicAvailabilityStatus = 'available' | 'unavailable';
+
 const responseOptions: Array<{
-  value: Exclude<StaffAvailabilityStatus, 'pending'>;
+  value: PublicAvailabilityStatus;
   label: string;
   description: string;
   icon: typeof CheckCircle2;
 }> = [
   {
     value: 'available',
-    label: '진행 가능합니다',
-    description: '정기 일정으로 검토 가능합니다.',
+    label: '가능합니다',
+    description: '목·금·토 18:50~22:30 고정 일정이 모두 가능합니다.',
     icon: CheckCircle2,
   },
   {
-    value: 'maybe',
-    label: '조율 가능해요',
-    description: '요일이나 시간 조건을 맞춰봐야 합니다.',
-    icon: Clock3,
-  },
-  {
     value: 'unavailable',
-    label: '이번 건은 어렵습니다',
-    description: '스탭풀 등록은 유지할 수 있습니다.',
+    label: '불가능합니다',
+    description: '이번 고정건은 어렵지만 스탭풀 등록은 계속할 수 있습니다.',
     icon: XCircle,
   },
 ];
 
 export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: StaffAvailabilityPollRow }) {
   const [poll, setPoll] = useState(initialPoll);
-  const [status, setStatus] = useState<StaffAvailabilityStatus>(
-    initialPoll.response_status === 'pending' ? 'available' : initialPoll.response_status
+  const [status, setStatus] = useState<PublicAvailabilityStatus>(
+    initialPoll.response_status === 'unavailable' ? 'unavailable' : 'available'
   );
-  const [days, setDays] = useState<StaffAvailabilityDay[]>(initialPoll.available_days ?? []);
-  const [preferredTime, setPreferredTime] = useState(initialPoll.preferred_time ?? '');
   const [rateNote, setRateNote] = useState(initialPoll.rate_note ?? '');
   const [equipmentNote, setEquipmentNote] = useState(initialPoll.equipment_note ?? '');
   const [message, setMessage] = useState(initialPoll.message ?? '');
@@ -59,17 +49,8 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
 
   const applyHref = `/staff/apply?source=availability&availability_token=${encodeURIComponent(poll.token)}`;
 
-  function toggleDay(day: StaffAvailabilityDay) {
-    setDays((prev) => (prev.includes(day) ? prev.filter((item) => item !== day) : [...prev, day]));
-  }
-
   async function submit() {
     setError('');
-    if ((status === 'available' || status === 'maybe') && days.length === 0) {
-      setError('가능한 요일을 하나 이상 선택해 주세요.');
-      return;
-    }
-
     setBusy(true);
     try {
       const res = await fetch(`/api/staff/availability/${encodeURIComponent(poll.token)}`, {
@@ -77,8 +58,6 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           response_status: status,
-          available_days: status === 'unavailable' ? [] : days,
-          preferred_time: preferredTime,
           rate_note: rateNote,
           equipment_note: equipmentNote,
           message,
@@ -106,15 +85,16 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
           <p className="mt-3 text-sm leading-relaxed text-white/55">
             보내주신 내용을 바탕으로 먼저 검토 중입니다.
             <br />
-            이번 건이 맞지 않아도 이후 프로젝트 연락을 위해 스탭풀 등록은 이어갈 수 있습니다.
+            이번 고정 일정이 어렵더라도 이후 프로젝트 연락을 위해 스탭풀 등록은 이어갈 수 있습니다.
           </p>
         </div>
 
         <section className="rounded-md border border-white/10 bg-white/[0.035] p-4">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/35">Project</p>
+          <p className="text-xs font-bold tracking-[0.14em] text-white/35">고정건 정보</p>
           <h2 className="mt-2 text-lg font-black">{STAFF_AVAILABILITY_PROJECT.title}</h2>
           <div className="mt-3 grid gap-2 text-sm leading-relaxed text-white/60">
             <p>장소: {STAFF_AVAILABILITY_PROJECT.location}</p>
+            <p>일정: {STAFF_AVAILABILITY_PROJECT.schedule}</p>
             <p>소요: {STAFF_AVAILABILITY_PROJECT.workload}</p>
             <p>{STAFF_AVAILABILITY_PROJECT.flow}</p>
           </div>
@@ -125,10 +105,8 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             <p className="text-sm font-bold text-emerald-100">
               현재 응답: {availabilityStatusLabel(poll.response_status)}
             </p>
-            {poll.available_days.length > 0 && (
-              <p className="mt-1 text-sm text-emerald-100/75">
-                {poll.available_days.map(availabilityDayLabel).join(', ')}
-              </p>
+            {poll.response_status === 'available' && (
+              <p className="mt-1 text-sm text-emerald-100/75">목·금·토 18:50~22:30 전체 가능</p>
             )}
           </section>
         )}
@@ -158,40 +136,11 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             })}
           </div>
 
-          {status !== 'unavailable' && (
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-white/35">가능 요일</p>
-              <div className="grid grid-cols-3 gap-2">
-                {STAFF_AVAILABILITY_DAYS.map((day) => (
-                  <button
-                    key={day.value}
-                    type="button"
-                    onClick={() => toggleDay(day.value)}
-                    className={cls(
-                      'h-11 rounded border text-sm font-bold transition',
-                      days.includes(day.value)
-                        ? 'border-brand bg-brand text-white'
-                        : 'border-white/10 bg-black text-white/55 hover:border-white/25'
-                    )}
-                  >
-                    {day.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Field
-            label="가능 시간대"
-            value={preferredTime}
-            onChange={setPreferredTime}
-            placeholder="예: 오후 2시 이후, 저녁 가능, 일정별 협의"
-          />
           <Field
             label="금액 기준"
             value={rateNote}
             onChange={setRateNote}
-            placeholder="예: 회차별 협의, 1회 기준 희망 금액"
+            placeholder="가능한 경우 회차 기준 희망 금액을 남겨주세요."
           />
           <Field
             label="장비·툴 참고"
@@ -203,7 +152,7 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             label="남길 말"
             value={message}
             onChange={setMessage}
-            placeholder="일정 조건이나 확인이 필요한 내용을 남겨주세요."
+            placeholder="불가능한 경우에도 스탭풀 등록 희망 여부나 참고 내용을 남겨주세요."
             rows={4}
           />
 
