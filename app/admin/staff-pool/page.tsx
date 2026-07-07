@@ -8,6 +8,7 @@ import type {
   StaffRateCardRow,
   StaffSkillEntryRow,
 } from '@/lib/staff-pool';
+import type { StaffAvailabilityPollRow } from '@/lib/staff-availability';
 import StaffPoolClient from './StaffPoolClient';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export const dynamic = 'force-dynamic';
 type StaffApplicationBaseRow = Omit<
   StaffApplicationRow,
   'capabilities' | 'skill_entries' | 'rate_cards' | 'files' | 'notes' | 'partner_name'
+  | 'availability_polls'
 >;
 
 function asArray(value: unknown): string[] {
@@ -39,7 +41,7 @@ export default async function StaffPoolPage() {
     .map((item) => item.partner_id)
     .filter((id): id is number => typeof id === 'number');
 
-  const [capabilitiesRes, skillsRes, ratesRes, filesRes, notesRes, partnersRes] =
+  const [capabilitiesRes, skillsRes, ratesRes, filesRes, notesRes, availabilityRes, partnersRes] =
     ids.length > 0
       ? await Promise.all([
           supabase.from('react_staff_capabilities').select('*').in('application_id', ids),
@@ -51,11 +53,17 @@ export default async function StaffPoolPage() {
             .select('*,author:app_users!react_staff_notes_created_by_fkey(name)')
             .in('application_id', ids)
             .order('created_at', { ascending: false }),
+          supabase
+            .from('react_staff_availability_polls')
+            .select('*')
+            .in('application_id', ids)
+            .order('created_at', { ascending: false }),
           partnerIds.length
             ? supabase.from('partners').select('id,display_name').in('id', partnerIds)
             : Promise.resolve({ data: [] }),
         ])
       : [
+          { data: [] },
           { data: [] },
           { data: [] },
           { data: [] },
@@ -95,6 +103,12 @@ export default async function StaffPoolPage() {
     partnerNameById.set(partner.id, partner.display_name);
   }
 
+  const availabilityByApp = new Map<number, StaffAvailabilityPollRow[]>();
+  for (const poll of (availabilityRes.data ?? []) as StaffAvailabilityPollRow[]) {
+    if (!poll.application_id) continue;
+    availabilityByApp.set(poll.application_id, [...(availabilityByApp.get(poll.application_id) ?? []), poll]);
+  }
+
   const rows: StaffApplicationRow[] = applications.map((item) => ({
     ...item,
     social_links: asArray(item.social_links),
@@ -108,6 +122,7 @@ export default async function StaffPoolPage() {
     rate_cards: ratesByApp.get(item.id) ?? [],
     files: filesByApp.get(item.id) ?? [],
     notes: notesByApp.get(item.id) ?? [],
+    availability_polls: availabilityByApp.get(item.id) ?? [],
     partner_name: item.partner_id ? partnerNameById.get(item.partner_id) ?? null : null,
   })) as StaffApplicationRow[];
 

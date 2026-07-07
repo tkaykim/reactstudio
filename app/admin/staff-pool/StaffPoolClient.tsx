@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import {
   ArrowUpDown,
   Building2,
+  CalendarCheck,
   Download,
   ExternalLink,
   FileText,
@@ -28,6 +29,12 @@ import {
   type StaffApplicationRow,
   type StaffStatus,
 } from '@/lib/staff-pool';
+import {
+  availabilityDayLabel,
+  availabilityStatusLabel,
+  STAFF_AVAILABILITY_STATUSES,
+  type StaffAvailabilityPollRow,
+} from '@/lib/staff-availability';
 
 type SortKey = 'newest' | 'rating' | 'name' | 'rate_low';
 type StatusFilter = 'all' | StaffStatus;
@@ -52,6 +59,16 @@ function minRate(row: StaffApplicationRow) {
     .map((rate) => rate.min_amount ?? rate.max_amount)
     .filter((value): value is number => typeof value === 'number');
   return values.length ? Math.min(...values) : Number.POSITIVE_INFINITY;
+}
+
+function latestPoll(row: StaffApplicationRow) {
+  return [...row.availability_polls].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )[0] ?? null;
+}
+
+function pollStatusTone(status: string) {
+  return STAFF_AVAILABILITY_STATUSES.find((item) => item.value === status)?.tone ?? 'border-white/10 text-white/45';
 }
 
 function searchable(row: StaffApplicationRow) {
@@ -81,6 +98,14 @@ function searchable(row: StaffApplicationRow) {
       ...skill.equipment,
     ]),
     ...row.rate_cards.flatMap((rate) => [rate.skill_group, rate.skill_name, rate.notes]),
+    ...row.availability_polls.flatMap((poll) => [
+      poll.response_status,
+      poll.preferred_time,
+      poll.rate_note,
+      poll.equipment_note,
+      poll.message,
+      ...poll.available_days,
+    ]),
   ]
     .filter(Boolean)
     .join(' ')
@@ -265,14 +290,22 @@ export default function StaffPoolClient({ initialRows }: { initialRows: StaffApp
             전체 {counts.total ?? 0}명 · 신규 {counts.new ?? 0}명 · 후보 {counts.shortlisted ?? 0}명 · 승인 {counts.approved ?? 0}명
           </p>
         </div>
-        <a
-          href="/staff/apply"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded bg-white px-3 py-2 text-xs font-black text-black transition hover:bg-brand hover:text-white"
-        >
-          지원 페이지 열기 <ExternalLink size={14} />
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/staff/apply"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded bg-white px-3 py-2 text-xs font-black text-black transition hover:bg-brand hover:text-white"
+          >
+            지원 페이지 열기 <ExternalLink size={14} />
+          </a>
+          <a
+            href="/admin/staff-pool/availability"
+            className="inline-flex items-center gap-2 rounded border border-white/10 px-3 py-2 text-xs font-black text-white/65 transition hover:border-brand hover:text-brand"
+          >
+            가능 여부 현황 <CalendarCheck size={14} />
+          </a>
+        </div>
       </div>
 
       <div className="grid gap-3 rounded-md border border-white/10 bg-white/[0.025] p-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr_1fr_0.8fr]">
@@ -343,6 +376,7 @@ export default function StaffPoolClient({ initialRows }: { initialRows: StaffApp
             ) : (
               filtered.map((row) => {
                 const active = selected?.id === row.id;
+                const poll = latestPoll(row);
                 return (
                   <button
                     key={row.id}
@@ -365,6 +399,11 @@ export default function StaffPoolClient({ initialRows }: { initialRows: StaffApp
                       <span className="flex flex-wrap items-center gap-1.5">
                         <StatusBadge status={row.status} />
                         <span className="text-[11px] text-white/35">{applicantTypeLabel(row.applicant_type)}</span>
+                        {poll && (
+                          <span className={cls('rounded border px-1.5 py-0.5 text-[11px] font-bold', pollStatusTone(poll.response_status))}>
+                            {availabilityStatusLabel(poll.response_status)}
+                          </span>
+                        )}
                         {row.admin_rating && (
                           <span className="inline-flex items-center gap-1 text-[11px] text-amber-200">
                             <Star size={11} fill="currentColor" /> {row.admin_rating}
@@ -469,6 +508,26 @@ export default function StaffPoolClient({ initialRows }: { initialRows: StaffApp
                   </p>
                 </section>
               )}
+
+              <Panel title="댄스학원 고정건 응답">
+                {selected.availability_polls.length === 0 ? (
+                  <div className="flex items-center justify-between gap-3 rounded border border-white/10 bg-white/[0.025] p-3">
+                    <p className="text-sm text-white/35">아직 연결된 가능 여부 응답이 없습니다.</p>
+                    <a
+                      href="/admin/staff-pool/availability"
+                      className="shrink-0 rounded border border-white/10 px-3 py-2 text-xs font-bold text-white/55 transition hover:border-brand hover:text-brand"
+                    >
+                      전체 현황
+                    </a>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {selected.availability_polls.map((poll) => (
+                      <AvailabilityPollCard key={poll.id} poll={poll} />
+                    ))}
+                  </div>
+                )}
+              </Panel>
 
               <section className="grid gap-4 lg:grid-cols-2">
                 <Panel title="대분류 역량">
@@ -658,6 +717,38 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
 
 function Empty() {
   return <p className="text-sm text-white/30">기록이 없습니다.</p>;
+}
+
+function AvailabilityPollCard({ poll }: { poll: StaffAvailabilityPollRow }) {
+  return (
+    <div className="rounded border border-white/10 bg-white/[0.025] p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <span className={cls('inline-flex rounded border px-2 py-1 text-xs font-bold', pollStatusTone(poll.response_status))}>
+            {availabilityStatusLabel(poll.response_status)}
+          </span>
+          <p className="mt-2 text-xs text-white/40">
+            {poll.submitted_at ? `${formatDate(poll.submitted_at)} 응답` : '아직 미응답'}
+          </p>
+        </div>
+        <a
+          href={`/staff/availability/${poll.token}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 rounded border border-white/10 px-2 py-1 text-xs font-bold text-white/50 transition hover:border-brand hover:text-brand"
+        >
+          링크 <ExternalLink size={12} />
+        </a>
+      </div>
+      <div className="mt-3 grid gap-1 text-xs leading-relaxed text-white/55 sm:grid-cols-2">
+        <p>요일: {poll.available_days.length ? poll.available_days.map(availabilityDayLabel).join(', ') : '-'}</p>
+        <p>시간: {poll.preferred_time || '-'}</p>
+        <p>금액: {poll.rate_note || '-'}</p>
+        <p>장비: {poll.equipment_note || '-'}</p>
+      </div>
+      {poll.message && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-white/55">{poll.message}</p>}
+    </div>
+  );
 }
 
 function TagBlock({ title, values }: { title: string; values: string[] }) {

@@ -1,3 +1,5 @@
+import type { StaffAvailabilityPollRow } from './staff-availability';
+
 export const STAFF_FILES_BUCKET = 'react-staff-files';
 
 export const STAFF_APPLICANT_TYPES = [
@@ -372,6 +374,7 @@ export type StaffApplicationRow = StaffApplicationPayload & {
   rate_cards: StaffRateCardRow[];
   files: StaffFileRow[];
   notes: StaffNoteRow[];
+  availability_polls: StaffAvailabilityPollRow[];
   partner_name?: string | null;
 };
 

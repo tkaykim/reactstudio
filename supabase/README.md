@@ -12,7 +12,7 @@
 | 영역 | 담당 레포 | 비고 |
 |------|-----------|------|
 | `inquiries`, `quotes`, `contracts`, `agreements` | reactstudio | ERP는 읽지 않음 |
-| `react_staff_applications`, `react_staff_capabilities`, `react_staff_skill_entries`, `react_staff_rate_cards`, `react_staff_files`, `react_staff_notes` | reactstudio | 공개 지원서 수집과 REACT 관리자 스탭풀 관리 |
+| `react_staff_applications`, `react_staff_capabilities`, `react_staff_skill_entries`, `react_staff_rate_cards`, `react_staff_files`, `react_staff_notes`, `react_staff_availability_polls` | reactstudio | 공개 지원서 수집, 고정건 가능 여부 투표, REACT 관리자 스탭풀 관리 |
 | Storage bucket `react-staff-files` | reactstudio | private bucket, 관리자 signed URL로만 열람 |
 | `financial_entries` 의 reactstudio 확장 컬럼 (`contract_id`, `client_name`, `due_date`, `paid_at`, `payee_app_user_id`, `approved_by`, `approved_at`, `payment_ref`) | reactstudio | ERP API는 select/insert하지 않음 → 영향 0 |
 | `projects`, `partners`, `app_users`, `business_units`, `financial_entries` 코어 컬럼 등 | totalmanagements (ERP) | reactstudio는 **읽기 위주**, 쓰기는 BU=REACT 한정 |
@@ -69,6 +69,7 @@ reactstudio가 `financial_entries`에 **쓰기**(INSERT/UPDATE/DELETE)할 때는
 | `react_staff_rate_cards` | 스킬별 rough 단가 범위와 장비 포함 여부 |
 | `react_staff_files` | 사업자등록증과 포트폴리오 파일 메타데이터 |
 | `react_staff_notes` | 관리자 검토 메모 |
+| `react_staff_availability_polls` | 토큰 버튼으로 받는 이대역 댄스학원 고정건 가능 여부, 내부 연령 추정 신호 |
 
 신규 `react_staff_*` 테이블은 모두 RLS enabled 상태이며, 현재 앱 서버는 service role 경로로만 읽고 씁니다.
 
