@@ -60,7 +60,7 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
       <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-4 py-6">
         <div className="mb-5">
           <p className="text-xs font-semibold text-brand">REACT studio</p>
-          <h1 className="mt-3 text-[2rem] font-black leading-tight tracking-normal">
+          <h1 className="mt-3 break-keep text-[1.85rem] font-black leading-tight tracking-normal">
             {project.heading}
           </h1>
           <div className="mt-3 space-y-1 text-sm leading-relaxed text-white/55">
