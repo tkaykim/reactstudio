@@ -7,6 +7,7 @@ import {
   availabilityScheduleLabel,
   availabilityStatusLabel,
   STAFF_AVAILABILITY_STATUSES,
+  staffAvailabilityProjectForKey,
   type StaffAvailabilityPollRow,
 } from '@/lib/staff-availability';
 
@@ -33,6 +34,10 @@ function cls(...values: Array<string | false | null | undefined>) {
 
 function statusTone(status: string) {
   return STAFF_AVAILABILITY_STATUSES.find((item) => item.value === status)?.tone ?? 'border-white/10 text-white/45';
+}
+
+function projectTitle(row: StaffAvailabilityPollRow) {
+  return row.project_title || staffAvailabilityProjectForKey(row.project_key).title;
 }
 
 export default async function StaffAvailabilityAdminPage() {
@@ -68,8 +73,8 @@ export default async function StaffAvailabilityAdminPage() {
             <ArrowLeft size={14} />
             스탭풀로 돌아가기
           </Link>
-          <p className="text-xs font-semibold tracking-[0.2em] text-brand">고정 일정</p>
-          <h1 className="mt-1 text-2xl font-black text-white">댄스학원 고정건 응답 현황</h1>
+          <p className="text-xs font-semibold tracking-[0.2em] text-brand">프로젝트 응답</p>
+          <h1 className="mt-1 text-2xl font-black text-white">스탭풀 프로젝트 응답 현황</h1>
           <p className="mt-1 text-xs text-white/40">
             전체 {counts.total ?? 0}명 · 가능 {counts.available ?? 0}명 · 불가능 {counts.unavailable ?? 0}명 · 미응답 {counts.pending ?? 0}명
             {counts.maybe ? ` · 확인필요 ${counts.maybe}명` : ''}
@@ -98,6 +103,7 @@ export default async function StaffAvailabilityAdminPage() {
                   <div className="min-w-0">
                     <p className="truncate font-bold text-white">{name}</p>
                     <p className="mt-1 truncate text-xs text-white/40">{email || '이메일 미확인'}</p>
+                    <p className="mt-1 line-clamp-2 text-xs text-brand/80">{projectTitle(row)}</p>
                     {row.application_id && (
                       <Link
                         href={`/admin/staff-pool?selected=${row.application_id}`}
@@ -121,7 +127,9 @@ export default async function StaffAvailabilityAdminPage() {
                     {row.age_evidence && <p className="mt-1 line-clamp-2 text-xs text-white/35">{row.age_evidence}</p>}
                   </div>
                   <div className="space-y-1 text-xs leading-relaxed text-white/55">
-                    <p>일정: {availabilityScheduleLabel(row)}</p>
+                    <p>기준: {availabilityScheduleLabel(row)}</p>
+                    {row.rate_note && <p className="line-clamp-2">단가: {row.rate_note}</p>}
+                    {row.equipment_note && <p className="line-clamp-2">장비: {row.equipment_note}</p>}
                     {row.message && <p className="line-clamp-2">메모: {row.message}</p>}
                   </div>
                   <div className="min-w-0">

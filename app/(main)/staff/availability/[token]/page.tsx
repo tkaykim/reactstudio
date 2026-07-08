@@ -11,8 +11,8 @@ type PageProps = {
 };
 
 export const metadata: Metadata = {
-  title: 'REACT 고정 촬영건 가능 여부',
-  description: 'REACT Studio 고정 촬영·편집 프로젝트 진행 가능 여부를 알려주세요.',
+  title: 'REACT 프로젝트 가능 여부',
+  description: 'REACT Studio 프로젝트 진행 가능 여부를 알려주세요.',
   robots: { index: false, follow: false },
 };
 

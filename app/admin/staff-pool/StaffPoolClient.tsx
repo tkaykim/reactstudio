@@ -508,7 +508,7 @@ export default function StaffPoolClient({ initialRows }: { initialRows: StaffApp
                 </section>
               )}
 
-              <Panel title="댄스학원 고정건 응답">
+              <Panel title="프로젝트 응답">
                 {selected.availability_polls.length === 0 ? (
                   <div className="flex items-center justify-between gap-3 rounded border border-white/10 bg-white/[0.025] p-3">
                     <p className="text-sm text-white/35">아직 연결된 가능 여부 응답이 없습니다.</p>
@@ -723,6 +723,7 @@ function AvailabilityPollCard({ poll }: { poll: StaffAvailabilityPollRow }) {
     <div className="rounded border border-white/10 bg-white/[0.025] p-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
+          <p className="mb-2 text-xs font-bold text-brand">{poll.project_title}</p>
           <span className={cls('inline-flex rounded border px-2 py-1 text-xs font-bold', pollStatusTone(poll.response_status))}>
             {availabilityStatusLabel(poll.response_status)}
           </span>
@@ -740,7 +741,8 @@ function AvailabilityPollCard({ poll }: { poll: StaffAvailabilityPollRow }) {
         </a>
       </div>
       <div className="mt-3 grid gap-1 text-xs leading-relaxed text-white/55 sm:grid-cols-2">
-        <p>일정: {availabilityScheduleLabel(poll)}</p>
+        <p>기준: {availabilityScheduleLabel(poll)}</p>
+        <p>단가: {poll.rate_note || '-'}</p>
         <p>장비: {poll.equipment_note || '-'}</p>
       </div>
       {poll.message && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-white/55">{poll.message}</p>}

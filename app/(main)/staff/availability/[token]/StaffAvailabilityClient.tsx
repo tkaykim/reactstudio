@@ -4,8 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Send, XCircle } from 'lucide-react';
 import {
-  STAFF_AVAILABILITY_PROJECT,
   availabilityStatusLabel,
+  staffAvailabilityProjectForKey,
   type StaffAvailabilityPollRow,
 } from '@/lib/staff-availability';
 
@@ -15,31 +15,13 @@ function cls(...values: Array<string | false | null | undefined>) {
 
 type PublicAvailabilityStatus = 'available' | 'unavailable';
 
-const responseOptions: Array<{
-  value: PublicAvailabilityStatus;
-  label: string;
-  description: string;
-  icon: typeof CheckCircle2;
-}> = [
-  {
-    value: 'available',
-    label: '가능합니다',
-    description: '목·금·토 18:50~22:30 고정 일정이 모두 가능합니다.',
-    icon: CheckCircle2,
-  },
-  {
-    value: 'unavailable',
-    label: '불가능합니다',
-    description: '이번 고정건은 어렵지만 스탭풀 등록은 계속할 수 있습니다.',
-    icon: XCircle,
-  },
-];
-
 export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: StaffAvailabilityPollRow }) {
   const [poll, setPoll] = useState(initialPoll);
+  const project = staffAvailabilityProjectForKey(poll.project_key);
   const [status, setStatus] = useState<PublicAvailabilityStatus>(
     initialPoll.response_status === 'unavailable' ? 'unavailable' : 'available'
   );
+  const [rateNote, setRateNote] = useState(initialPoll.rate_note ?? '');
   const [equipmentNote, setEquipmentNote] = useState(initialPoll.equipment_note ?? '');
   const [message, setMessage] = useState(initialPoll.message ?? '');
   const [busy, setBusy] = useState(false);
@@ -57,6 +39,7 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           response_status: status,
+          rate_note: rateNote,
           equipment_note: equipmentNote,
           message,
         }),
@@ -78,23 +61,23 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
         <div className="mb-5">
           <p className="text-xs font-semibold text-brand">REACT studio</p>
           <h1 className="mt-3 text-[2rem] font-black leading-tight tracking-normal">
-            고정 촬영·편집건 가능 여부를 알려주세요.
+            {project.heading}
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-white/55">
-            보내주신 내용을 바탕으로 먼저 검토 중입니다.
-            <br />
-            이번 고정 일정이 어렵더라도 이후 프로젝트 연락을 위해 스탭풀 등록은 이어갈 수 있습니다.
-          </p>
+          <div className="mt-3 space-y-1 text-sm leading-relaxed text-white/55">
+            {project.intro.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
         </div>
 
         <section className="rounded-md border border-white/10 bg-white/[0.035] p-4">
-          <p className="text-xs font-bold tracking-[0.14em] text-white/35">고정건 정보</p>
-          <h2 className="mt-2 text-lg font-black">{STAFF_AVAILABILITY_PROJECT.title}</h2>
+          <p className="text-xs font-bold tracking-[0.14em] text-white/35">{project.label}</p>
+          <h2 className="mt-2 text-lg font-black">{project.title}</h2>
           <div className="mt-3 grid gap-2 text-sm leading-relaxed text-white/60">
-            <p>장소: {STAFF_AVAILABILITY_PROJECT.location}</p>
-            <p>일정: {STAFF_AVAILABILITY_PROJECT.schedule}</p>
-            <p>소요: {STAFF_AVAILABILITY_PROJECT.workload}</p>
-            <p>{STAFF_AVAILABILITY_PROJECT.flow}</p>
+            <p>지역: {project.location}</p>
+            <p>기준: {project.schedule}</p>
+            <p>내용: {project.workload}</p>
+            <p>{project.flow}</p>
           </div>
         </section>
 
@@ -104,14 +87,28 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
               현재 응답: {availabilityStatusLabel(poll.response_status)}
             </p>
             {poll.response_status === 'available' && (
-              <p className="mt-1 text-sm text-emerald-100/75">목·금·토 18:50~22:30 전체 가능</p>
+              <p className="mt-1 text-sm text-emerald-100/75">{project.savedAvailableDetail}</p>
             )}
+            {poll.rate_note && <p className="mt-1 text-sm text-emerald-100/75">기준 단가: {poll.rate_note}</p>}
           </section>
         )}
 
         <section className="mt-4 space-y-4 rounded-md border border-white/10 bg-[#080808] p-4">
           <div className="grid gap-2">
-            {responseOptions.map((option) => {
+            {[
+              {
+                value: 'available' as const,
+                label: '가능합니다',
+                description: project.availableDescription,
+                icon: CheckCircle2,
+              },
+              {
+                value: 'unavailable' as const,
+                label: '불가능합니다',
+                description: project.unavailableDescription,
+                icon: XCircle,
+              },
+            ].map((option) => {
               const Icon = option.icon;
               const active = status === option.value;
               return (
@@ -134,17 +131,26 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             })}
           </div>
 
+          {project.rateLabel && (
+            <Field
+              label={project.rateLabel}
+              value={rateNote}
+              onChange={setRateNote}
+              placeholder={project.ratePlaceholder ?? ''}
+              rows={2}
+            />
+          )}
           <Field
-            label="장비·툴 참고"
+            label={project.equipmentLabel}
             value={equipmentNote}
             onChange={setEquipmentNote}
-            placeholder="예: 개인 카메라 사용 가능, 현장 PC 편집 가능"
+            placeholder={project.equipmentPlaceholder}
           />
           <Field
             label="남길 말"
             value={message}
             onChange={setMessage}
-            placeholder="불가능한 경우에도 스탭풀 등록 희망 여부나 참고 내용을 남겨주세요."
+            placeholder={project.messagePlaceholder}
             rows={4}
           />
 
@@ -157,7 +163,7 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             className="flex h-12 w-full items-center justify-center gap-2 rounded bg-white text-sm font-black text-black transition hover:bg-brand hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send size={16} />
-            {busy ? '저장 중' : saved ? '응답 수정하기' : '가능 여부 저장하기'}
+            {busy ? '저장 중' : saved ? project.savedSubmitLabel : project.submitLabel}
           </button>
         </section>
 
