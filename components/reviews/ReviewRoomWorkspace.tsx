@@ -338,11 +338,11 @@ export default function ReviewRoomWorkspace({
 
   return (
     <div className="min-h-screen bg-[#080808] text-white">
-      <main className={cls('mx-auto w-full space-y-4 px-4 py-5', mode === 'admin' ? 'max-w-7xl' : 'max-w-6xl')}>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <main className={cls('mx-auto w-full space-y-4 px-3 py-4 sm:px-4 sm:py-5', mode === 'admin' ? 'max-w-7xl' : 'max-w-6xl')}>
+        <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">REACT Review Room</p>
-            <h1 className="mt-1 text-2xl font-black">{room.title}</h1>
+            <h1 className="mt-1 text-xl font-black sm:text-2xl">{room.title}</h1>
             <p className="mt-1 text-sm text-white/45">
               {room.client_name ?? '클라이언트 미지정'} · {room.project_name ?? '프로젝트 미연결'}
             </p>
@@ -379,7 +379,7 @@ export default function ReviewRoomWorkspace({
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_420px]">
-          <section className="space-y-3">
+            <div className="sticky top-0 z-30 -mx-3 space-y-2 bg-[#080808] px-3 pb-2 sm:-mx-4 sm:px-4 xl:static xl:col-start-1 xl:row-start-1 xl:mx-0 xl:space-y-3 xl:bg-transparent xl:p-0">
             <div className="relative aspect-video overflow-hidden rounded-md border border-white/10 bg-black">
               {currentVideo?.youtube_video_id ? (
                 <>
@@ -473,25 +473,26 @@ export default function ReviewRoomWorkspace({
                 ))}
               </div>
             </div>
+            </div>
 
-            <section className="rounded-md border border-white/10 bg-white/[0.025] p-4">
-              <div className="mb-3 grid gap-2 md:grid-cols-[1fr_1fr_0.8fr]">
+            <section className="rounded-md border border-white/10 bg-white/[0.025] p-3 sm:p-4 xl:col-start-1 xl:row-start-2">
+              <div className="mb-3 grid grid-cols-2 gap-2 md:grid-cols-[1fr_1fr_0.8fr]">
                 <input
                   value={authorName}
                   onChange={(event) => setAuthorName(event.target.value)}
                   placeholder="이름"
-                  className="h-10 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-brand"
+                  className="order-1 h-10 min-w-0 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-brand"
                 />
                 <input
                   value={authorEmail}
                   onChange={(event) => setAuthorEmail(event.target.value)}
-                  placeholder="이메일"
-                  className="h-10 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-brand"
+                  placeholder="이메일 (선택)"
+                  className="order-3 col-span-2 h-10 min-w-0 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-brand md:order-2 md:col-span-1"
                 />
                 <select
                   value={authorRole}
                   onChange={(event) => setAuthorRole(event.target.value as ReviewAuthorRole)}
-                  className="h-10 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-brand"
+                  className="order-2 h-10 min-w-0 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none focus:border-brand md:order-3"
                 >
                   {REVIEW_AUTHOR_ROLE_OPTIONS.map((role) => (
                     <option key={role.value} value={role.value}>
@@ -561,9 +562,8 @@ export default function ReviewRoomWorkspace({
                 </button>
               </div>
             </section>
-          </section>
 
-          <aside className="space-y-3">
+          <aside className="space-y-3 xl:col-start-2 xl:row-span-2 xl:row-start-1">
             <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
               <div className="flex items-center justify-between">
                 <h2 className="inline-flex items-center gap-2 text-sm font-black">
@@ -574,7 +574,7 @@ export default function ReviewRoomWorkspace({
               </div>
             </div>
 
-            <div className="max-h-[calc(100vh-150px)] space-y-3 overflow-auto pr-1">
+            <div className="space-y-3 xl:max-h-[calc(100vh-150px)] xl:overflow-auto xl:pr-1">
               {annotations.length === 0 ? (
                 <div className="rounded-md border border-white/10 p-8 text-center text-sm text-white/35">
                   아직 코멘트가 없습니다.

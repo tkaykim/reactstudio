@@ -343,7 +343,7 @@ export default function ReviewsClient({
       </section>
 
       <div className="overflow-hidden rounded-md border border-white/10">
-        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/40">
+        <div className="hidden grid-cols-[1fr_auto_auto_auto] gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/40 md:grid">
           <span>Room</span>
           <span>Comments</span>
           <span>Status</span>
@@ -356,7 +356,7 @@ export default function ReviewsClient({
             rooms.map((room) => (
               <div
                 key={room.id}
-                className="grid items-center gap-3 px-4 py-3 transition hover:bg-white/[0.035] md:grid-cols-[96px_1fr_auto_auto_auto]"
+                className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3 px-3 py-3 transition hover:bg-white/[0.035] sm:px-4 md:grid-cols-[96px_1fr_auto_auto_auto]"
               >
                 <Link href={`/admin/reviews/${room.id}`} className="block">
                   <div className="relative aspect-video overflow-hidden rounded border border-white/10 bg-white/[0.04]">
@@ -378,6 +378,7 @@ export default function ReviewsClient({
                   </p>
                   <p className="mt-1 truncate text-xs text-white/30">{room.video_title ?? '영상 대기 중'}</p>
                 </div>
+                <div className="col-span-2 flex flex-wrap items-center gap-2 md:contents">
                 <div className="flex items-center gap-2 text-xs text-white/60">
                   <MessageSquare size={14} className="text-white/30" />
                   <span>{room.annotation_total}</span>
@@ -396,7 +397,7 @@ export default function ReviewsClient({
                   {room.status === 'approved' && <CheckCircle2 size={13} />}
                   {reviewStatusLabel(room.status)}
                 </span>
-                <div className="flex justify-end gap-2">
+                <div className="ml-auto flex justify-end gap-2 md:ml-0">
                   <button
                     type="button"
                     onClick={() => copyShare(room.share_token)}
@@ -416,6 +417,7 @@ export default function ReviewsClient({
                   >
                     <ExternalLink size={14} />
                   </a>
+                </div>
                 </div>
               </div>
             ))
