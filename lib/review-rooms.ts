@@ -19,7 +19,26 @@ export type ReviewAuthorRole =
   | 'director'
   | 'viewer';
 
-export type ReviewAnnotationShape = 'time' | 'pin' | 'box';
+export type ReviewAnnotationShape = 'time' | 'range' | 'pin' | 'box';
+
+export type ReviewThumbnailStatus = 'proposed' | 'selected' | 'archived';
+
+export interface ReviewThumbnailRow {
+  id: number;
+  room_id: number;
+  label: string;
+  image_url: string;
+  storage_path: string | null;
+  size_bytes: number | null;
+  status: ReviewThumbnailStatus;
+  author_name: string;
+  author_role: ReviewAuthorRole;
+  selected_at: string | null;
+  selected_by: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface ReviewVideoRow {
   id: number;
@@ -55,9 +74,11 @@ export interface ReviewReplyRow {
 export interface ReviewAnnotationRow {
   id: number;
   room_id: number;
-  video_id: number;
+  video_id: number | null;
+  thumbnail_id: number | null;
   body: string;
   time_sec: number;
+  end_time_sec: number | null;
   x_pct: number | null;
   y_pct: number | null;
   w_pct: number | null;
@@ -95,6 +116,7 @@ export interface ReviewRoomRow {
   project_name?: string | null;
   videos: ReviewVideoRow[];
   annotations: ReviewAnnotationRow[];
+  thumbnails: ReviewThumbnailRow[];
 }
 
 export const REVIEW_ROOM_STATUS_OPTIONS: Array<{ value: ReviewRoomStatus; label: string }> = [
@@ -149,6 +171,12 @@ export function formatTimecode(seconds: number | string | null | undefined) {
     return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+export function formatTimeRange(startSec: number, endSec: number | null | undefined) {
+  const end = typeof endSec === 'number' && Number.isFinite(endSec) ? endSec : null;
+  if (end === null || end <= startSec) return formatTimecode(startSec);
+  return `${formatTimecode(startSec)}–${formatTimecode(end)}`;
 }
 
 export function roomSharePath(token: string) {

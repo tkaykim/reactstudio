@@ -1,5 +1,11 @@
 import { createSupabaseAdminClient } from '@/lib/supabase';
-import type { ReviewAnnotationRow, ReviewReplyRow, ReviewRoomRow, ReviewVideoRow } from '@/lib/review-rooms';
+import type {
+  ReviewAnnotationRow,
+  ReviewReplyRow,
+  ReviewRoomRow,
+  ReviewThumbnailRow,
+  ReviewVideoRow,
+} from '@/lib/review-rooms';
 
 function asNumber(value: unknown, fallback = 0) {
   const n = Number(value);
@@ -34,13 +40,24 @@ function normalizeAnnotation(row: Record<string, unknown>, replies: ReviewReplyR
     ...(row as unknown as ReviewAnnotationRow),
     id: asNumber(row.id),
     room_id: asNumber(row.room_id),
-    video_id: asNumber(row.video_id),
+    video_id: nullableNumber(row.video_id),
+    thumbnail_id: nullableNumber(row.thumbnail_id),
     time_sec: asNumber(row.time_sec),
+    end_time_sec: nullableNumber(row.end_time_sec),
     x_pct: nullableNumber(row.x_pct),
     y_pct: nullableNumber(row.y_pct),
     w_pct: nullableNumber(row.w_pct),
     h_pct: nullableNumber(row.h_pct),
     replies,
+  };
+}
+
+function normalizeThumbnail(row: Record<string, unknown>): ReviewThumbnailRow {
+  return {
+    ...(row as unknown as ReviewThumbnailRow),
+    id: asNumber(row.id),
+    room_id: asNumber(row.room_id),
+    size_bytes: nullableNumber(row.size_bytes),
   };
 }
 
@@ -83,7 +100,7 @@ async function loadReviewRoomChildren(room: Record<string, unknown>): Promise<Re
   const supabase = createSupabaseAdminClient();
   const roomId = asNumber(room.id);
 
-  const [videosRes, annotationsRes, projectRes] = await Promise.all([
+  const [videosRes, annotationsRes, thumbnailsRes, projectRes] = await Promise.all([
     supabase
       .from('react_review_videos')
       .select('*')
@@ -94,6 +111,12 @@ async function loadReviewRoomChildren(room: Record<string, unknown>): Promise<Re
       .select('*')
       .eq('room_id', roomId)
       .order('time_sec', { ascending: true }),
+    supabase
+      .from('react_review_thumbnails')
+      .select('*')
+      .eq('room_id', roomId)
+      .neq('status', 'archived')
+      .order('created_at', { ascending: true }),
     room.project_id
       ? supabase.from('projects').select('id,name').eq('id', room.project_id).maybeSingle()
       : Promise.resolve({ data: null }),
@@ -101,6 +124,7 @@ async function loadReviewRoomChildren(room: Record<string, unknown>): Promise<Re
 
   if (videosRes.error) console.error('[review-room] videos', videosRes.error);
   if (annotationsRes.error) console.error('[review-room] annotations', annotationsRes.error);
+  if (thumbnailsRes.error) console.error('[review-room] thumbnails', thumbnailsRes.error);
 
   const annotationRows = (annotationsRes.data ?? []) as Array<Record<string, unknown>>;
   const annotationIds = annotationRows.map((item) => asNumber(item.id));
@@ -132,5 +156,6 @@ async function loadReviewRoomChildren(room: Record<string, unknown>): Promise<Re
     annotations: annotationRows.map((annotation) =>
       normalizeAnnotation(annotation, repliesByAnnotation.get(asNumber(annotation.id)) ?? [])
     ),
+    thumbnails: ((thumbnailsRes.data ?? []) as Array<Record<string, unknown>>).map(normalizeThumbnail),
   };
 }

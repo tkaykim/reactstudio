@@ -11,7 +11,7 @@ const allowedRoles: ReviewAuthorRole[] = [
   'viewer',
 ];
 
-const allowedShapes: ReviewAnnotationShape[] = ['time', 'pin', 'box'];
+const allowedShapes: ReviewAnnotationShape[] = ['time', 'range', 'pin', 'box'];
 
 function cleanText(value: unknown, max = 1000) {
   if (typeof value !== 'string') return null;
@@ -59,28 +59,57 @@ export async function POST(req: NextRequest, context: { params: Promise<{ token:
   if (roomError) return NextResponse.json({ error: roomError.message }, { status: 500 });
   if (!room) return NextResponse.json({ error: '리뷰룸을 찾을 수 없습니다.' }, { status: 404 });
 
-  const { data: video, error: videoError } = await supabase
-    .from('react_review_videos')
-    .select('id')
-    .eq('room_id', room.id)
-    .eq('is_current', true)
-    .maybeSingle();
+  // 타깃 결정: 썸네일 코멘트 vs 영상 코멘트
+  const thumbnailIdRaw = Number(body.thumbnail_id);
+  const thumbnailId = Number.isFinite(thumbnailIdRaw) && thumbnailIdRaw > 0 ? thumbnailIdRaw : null;
 
-  if (videoError) return NextResponse.json({ error: videoError.message }, { status: 500 });
-  if (!video) return NextResponse.json({ error: '연결된 영상이 없습니다.' }, { status: 404 });
+  let videoId: number | null = null;
+  if (thumbnailId) {
+    const { data: thumb, error: thumbError } = await supabase
+      .from('react_review_thumbnails')
+      .select('id')
+      .eq('id', thumbnailId)
+      .eq('room_id', room.id)
+      .maybeSingle();
+    if (thumbError) return NextResponse.json({ error: thumbError.message }, { status: 500 });
+    if (!thumb) return NextResponse.json({ error: '썸네일을 찾을 수 없습니다.' }, { status: 404 });
+  } else {
+    const { data: video, error: videoError } = await supabase
+      .from('react_review_videos')
+      .select('id')
+      .eq('room_id', room.id)
+      .eq('is_current', true)
+      .maybeSingle();
+    if (videoError) return NextResponse.json({ error: videoError.message }, { status: 500 });
+    if (!video) return NextResponse.json({ error: '연결된 영상이 없습니다.' }, { status: 404 });
+    videoId = video.id;
+  }
+
+  const finalShape: ReviewAnnotationShape = thumbnailId && shape === 'range' ? 'time' : shape;
+  const timeSec = thumbnailId ? 0 : Math.max(0, cleanNumber(body.time_sec));
+  let endTimeSec: number | null = null;
+  if (shape === 'range' && !thumbnailId) {
+    const rawEnd = cleanNumber(body.end_time_sec, -1);
+    if (rawEnd <= timeSec) {
+      return NextResponse.json({ error: '구간 종료 지점은 시작 지점보다 뒤여야 합니다.' }, { status: 400 });
+    }
+    endTimeSec = rawEnd;
+  }
 
   const { data, error } = await supabase
     .from('react_review_annotations')
     .insert({
       room_id: room.id,
-      video_id: video.id,
+      video_id: videoId,
+      thumbnail_id: thumbnailId,
       body: text,
-      time_sec: Math.max(0, cleanNumber(body.time_sec)),
-      x_pct: shape === 'time' ? null : pct(body.x_pct),
-      y_pct: shape === 'time' ? null : pct(body.y_pct),
-      w_pct: shape === 'box' ? pct(body.w_pct) : null,
-      h_pct: shape === 'box' ? pct(body.h_pct) : null,
-      shape,
+      time_sec: timeSec,
+      end_time_sec: endTimeSec,
+      x_pct: finalShape === 'time' || finalShape === 'range' ? null : pct(body.x_pct),
+      y_pct: finalShape === 'time' || finalShape === 'range' ? null : pct(body.y_pct),
+      w_pct: finalShape === 'box' ? pct(body.w_pct) : null,
+      h_pct: finalShape === 'box' ? pct(body.h_pct) : null,
+      shape: finalShape,
       author_name: authorName,
       author_email: cleanText(body.author_email, 200),
       author_role: role,
@@ -92,12 +121,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ token:
 
   await supabase.from('react_review_events').insert({
     room_id: room.id,
-    video_id: video.id,
+    video_id: videoId,
     annotation_id: data.id,
     event_type: 'annotation_created',
     actor_name: authorName,
     actor_role: role,
-    payload: { shape, time_sec: data.time_sec },
+    payload: { shape: finalShape, time_sec: data.time_sec, end_time_sec: endTimeSec, thumbnail_id: thumbnailId },
   });
 
   return NextResponse.json({ annotation: { ...data, replies: [] } });
