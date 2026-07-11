@@ -28,12 +28,15 @@ import {
   X,
 } from 'lucide-react';
 import {
+  REVIEW_ANNOTATION_STATUS_OPTIONS,
   REVIEW_AUTHOR_ROLE_OPTIONS,
+  annotationStatusLabel,
   authorRoleLabel,
   formatTimecode,
   formatTimeRange,
   roomSharePath,
   type ReviewAnnotationRow,
+  type ReviewAnnotationStatus,
   type ReviewAuthorRole,
   type ReviewRoomRow,
   type ReviewThumbnailRow,
@@ -114,8 +117,17 @@ type ComposerDraft = {
   time_sec: number;
 };
 
+// 종결 상태 = 처리완료·반려·확인완료 (미해결 필터에서 제외)
 function isDone(annotation: ReviewAnnotationRow) {
-  return annotation.status === 'resolved' || annotation.status === 'approved';
+  return annotation.status === 'resolved' || annotation.status === 'rejected' || annotation.status === 'approved';
+}
+
+function statusTone(status: ReviewAnnotationStatus) {
+  if (status === 'approved') return 'border-white bg-white text-black';
+  if (status === 'resolved') return 'border-white/20 bg-white/15 text-white';
+  if (status === 'rejected') return 'border-red-300/25 bg-red-300/10 text-red-200';
+  if (status === 'in_progress') return 'border-white/15 bg-white/5 text-white/70';
+  return 'border-brand/30 bg-brand/10 text-brand';
 }
 
 function vLabel(label: string | null | undefined) {
@@ -172,6 +184,9 @@ export default function ReviewRoomWorkspace({
   // 버전 메뉴
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
   const [newVersionUrl, setNewVersionUrl] = useState('');
+
+  // 상태 칩 드롭다운 (열려 있는 코멘트 id)
+  const [statusMenuId, setStatusMenuId] = useState<number | null>(null);
 
   const [replyText, setReplyText] = useState<Record<number, string>>({});
   const [busy, setBusy] = useState(false);
@@ -429,12 +444,14 @@ export default function ReviewRoomWorkspace({
     }
   }
 
-  async function toggleDone(annotation: ReviewAnnotationRow) {
+  async function setStatus(annotation: ReviewAnnotationRow, nextStatus: ReviewAnnotationStatus) {
     if (!authorName.trim()) {
-      setError('완료 체크를 하려면 먼저 이름을 입력해주세요.');
+      setError('상태를 변경하려면 먼저 이름을 입력해주세요.');
+      setStatusMenuId(null);
       return;
     }
-    const nextStatus = isDone(annotation) ? 'open' : 'resolved';
+    setStatusMenuId(null);
+    if (annotation.status === nextStatus) return;
     setBusy(true);
     setError('');
     try {
@@ -1291,22 +1308,55 @@ export default function ReviewRoomWorkspace({
                       )}
                     >
                       <div className="flex items-start gap-2.5">
-                        {/* 완료 체크 (Frame.io 패턴) */}
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => toggleDone(annotation)}
-                          className={cls(
-                            'mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border transition',
-                            done
-                              ? 'border-white bg-white text-black'
-                              : 'border-white/30 text-transparent hover:border-white hover:text-white/40'
+                        {/* 상태 칩 + 드롭다운 */}
+                        <div className="relative mt-0.5 flex-shrink-0">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setStatusMenuId((prev) => (prev === annotation.id ? null : annotation.id))}
+                            className={cls(
+                              'inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[10px] font-black transition hover:brightness-125',
+                              statusTone(annotation.status)
+                            )}
+                            aria-label="상태 변경"
+                            title="클릭해서 상태 변경"
+                          >
+                            {annotation.status === 'approved' && <Check size={10} />}
+                            {annotationStatusLabel(annotation.status)}
+                            <ChevronDown size={10} className="opacity-60" />
+                          </button>
+                          {statusMenuId === annotation.id && (
+                            <>
+                              <button
+                                type="button"
+                                className="fixed inset-0 z-40 cursor-default"
+                                onClick={() => setStatusMenuId(null)}
+                                aria-label="상태 메뉴 닫기"
+                              />
+                              <div className="absolute left-0 top-7 z-50 w-52 rounded-lg border border-white/15 bg-[#141414] p-1 shadow-2xl">
+                                {REVIEW_ANNOTATION_STATUS_OPTIONS.map((option) => (
+                                  <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => setStatus(annotation, option.value)}
+                                    className={cls(
+                                      'flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left transition',
+                                      annotation.status === option.value ? 'bg-white/10' : 'hover:bg-white/5'
+                                    )}
+                                  >
+                                    <span className="min-w-0">
+                                      <span className={cls('inline-block rounded-full border px-2 py-0.5 text-[10px] font-black', statusTone(option.value))}>
+                                        {option.label}
+                                      </span>
+                                      <span className="mt-0.5 block text-[10px] leading-tight text-white/40">{option.description}</span>
+                                    </span>
+                                    {annotation.status === option.value && <Check size={12} className="flex-shrink-0 text-white/70" />}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
                           )}
-                          aria-label={done ? '미해결로 되돌리기' : '수정완료 체크'}
-                          title={done ? '미해결로 되돌리기' : '수정완료 체크'}
-                        >
-                          <Check size={12} />
-                        </button>
+                        </div>
 
                         <div className="min-w-0 flex-1">
                           <button
@@ -1350,7 +1400,16 @@ export default function ReviewRoomWorkspace({
                             )}
                           </button>
 
-                          <p className={cls('mt-1.5 whitespace-pre-wrap text-sm leading-relaxed', done ? 'text-white/40 line-through' : 'text-white/75')}>
+                          <p
+                            className={cls(
+                              'mt-1.5 whitespace-pre-wrap text-sm leading-relaxed',
+                              annotation.status === 'rejected'
+                                ? 'text-white/40'
+                                : done
+                                  ? 'text-white/40 line-through'
+                                  : 'text-white/75'
+                            )}
+                          >
                             {annotation.body}
                           </p>
 

@@ -11,7 +11,9 @@ const allowedRoles: ReviewAuthorRole[] = [
   'viewer',
 ];
 
-// 공유 페이지에서 코멘트 완료 체크(열림↔수정완료)만 토글할 수 있다.
+const allowedStatuses = ['open', 'in_progress', 'resolved', 'rejected', 'approved'] as const;
+
+// 공유 페이지에서 코멘트 상태를 변경한다 (누가 바꿨는지 events에 기록).
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ token: string; annotationId: string }> }
@@ -29,8 +31,8 @@ export async function PATCH(
     ? (body.author_role as ReviewAuthorRole)
     : 'client';
 
-  const status = body.status;
-  if (status !== 'open' && status !== 'resolved') {
+  const status = body.status as (typeof allowedStatuses)[number];
+  if (!allowedStatuses.includes(status)) {
     return NextResponse.json({ error: '상태값이 올바르지 않습니다.' }, { status: 400 });
   }
 
@@ -51,7 +53,7 @@ export async function PATCH(
     .update({
       status,
       resolved_by: null,
-      resolved_at: status === 'resolved' ? new Date().toISOString() : null,
+      resolved_at: ['resolved', 'rejected', 'approved'].includes(status) ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', annotationId)

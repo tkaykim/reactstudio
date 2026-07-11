@@ -9,7 +9,7 @@ export type ReviewRoomStatus =
 
 export type ReviewUploadStatus = 'queued' | 'uploading' | 'processing' | 'ready' | 'failed';
 
-export type ReviewAnnotationStatus = 'open' | 'in_progress' | 'resolved' | 'approved';
+export type ReviewAnnotationStatus = 'open' | 'in_progress' | 'resolved' | 'rejected' | 'approved';
 
 export type ReviewAuthorRole =
   | 'internal'
@@ -132,11 +132,13 @@ export const REVIEW_ROOM_STATUS_OPTIONS: Array<{ value: ReviewRoomStatus; label:
 export const REVIEW_ANNOTATION_STATUS_OPTIONS: Array<{
   value: ReviewAnnotationStatus;
   label: string;
+  description: string;
 }> = [
-  { value: 'open', label: '열림' },
-  { value: 'in_progress', label: '진행중' },
-  { value: 'resolved', label: '수정완료' },
-  { value: 'approved', label: '승인' },
+  { value: 'open', label: '요청됨', description: '수정 요청이 접수된 상태' },
+  { value: 'in_progress', label: '처리중', description: '편집자가 작업 중' },
+  { value: 'resolved', label: '처리완료', description: '수정이 반영됨' },
+  { value: 'rejected', label: '반려', description: '처리하지 않기로 함 (사유는 답글로)' },
+  { value: 'approved', label: '확인완료', description: '요청자가 반영을 확인함' },
 ];
 
 export const REVIEW_AUTHOR_ROLE_OPTIONS: Array<{ value: ReviewAuthorRole; label: string }> = [

@@ -3,7 +3,7 @@ import { apiRequireAdmin } from '@/lib/admin-auth';
 import { createSupabaseAdminClient } from '@/lib/supabase';
 import type { ReviewAnnotationStatus } from '@/lib/review-rooms';
 
-const allowedStatuses: ReviewAnnotationStatus[] = ['open', 'in_progress', 'resolved', 'approved'];
+const allowedStatuses: ReviewAnnotationStatus[] = ['open', 'in_progress', 'resolved', 'rejected', 'approved'];
 
 export async function PATCH(
   req: NextRequest,
@@ -28,7 +28,7 @@ export async function PATCH(
       return NextResponse.json({ error: '상태값이 올바르지 않습니다.' }, { status: 400 });
     }
     patch.status = body.status;
-    if (body.status === 'resolved' || body.status === 'approved') {
+    if (body.status === 'resolved' || body.status === 'rejected' || body.status === 'approved') {
       patch.resolved_by = user.id;
       patch.resolved_at = new Date().toISOString();
     } else {
