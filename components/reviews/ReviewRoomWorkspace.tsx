@@ -91,18 +91,17 @@ function cls(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ');
 }
 
+// 상태는 색상 종류가 아니라 명도 단계로 구분한다: 열림(브랜드 1곳)→진행중(연한 회색)→완료(진한 회색)→승인(흰 배경)
 function statusTone(status: ReviewAnnotationStatus) {
-  if (status === 'approved') return 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100';
-  if (status === 'resolved') return 'border-sky-300/25 bg-sky-300/10 text-sky-100';
-  if (status === 'in_progress') return 'border-amber-300/25 bg-amber-300/10 text-amber-100';
+  if (status === 'approved') return 'border-white/10 bg-white text-black';
+  if (status === 'resolved') return 'border-white/15 bg-white/10 text-white/80';
+  if (status === 'in_progress') return 'border-white/10 bg-white/5 text-white/55';
   return 'border-brand/25 bg-brand/10 text-brand';
 }
 
 function roleTone(role: ReviewAuthorRole) {
   if (role === 'internal') return 'bg-white text-black';
-  if (role === 'editor' || role === 'director') return 'bg-blue-300/15 text-blue-100';
-  if (role === 'channel_owner') return 'bg-purple-300/15 text-purple-100';
-  return 'bg-white/10 text-white/70';
+  return 'bg-white/10 text-white/60';
 }
 
 function shapeIcon(shape: ReviewAnnotationShape, isThumbnail: boolean) {
@@ -590,7 +589,7 @@ export default function ReviewRoomWorkspace({
         onClick={() => focusAnnotation(annotation)}
         className={cls(
           'pointer-events-auto absolute rounded border-2 transition',
-          active ? 'border-brand bg-brand/15' : 'border-white/80 bg-black/10 hover:border-brand'
+          active ? 'border-brand bg-brand/15' : 'border-white/80 bg-black/10 hover:border-white'
         )}
         style={{
           left: `${Math.max(0, x - w / 2)}%`,
@@ -606,10 +605,8 @@ export default function ReviewRoomWorkspace({
         type="button"
         onClick={() => focusAnnotation(annotation)}
         className={cls(
-          'pointer-events-auto absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-xs font-black shadow-lg transition',
-          active
-            ? 'border-brand bg-brand text-white'
-            : 'border-white bg-black/75 text-white hover:border-brand hover:text-brand'
+          'pointer-events-auto absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-xs font-black transition',
+          active ? 'border-brand bg-brand text-white' : 'border-white bg-black/75 text-white hover:bg-black'
         )}
         style={{ left: `${x}%`, top: `${y}%` }}
         aria-label={`코멘트 ${annotation.id}`}
@@ -666,7 +663,7 @@ export default function ReviewRoomWorkspace({
             {mode === 'admin' && (
               <Link
                 href="/admin/reviews"
-                className="inline-flex h-9 items-center rounded border border-white/10 px-3 text-xs font-bold text-white/60 transition hover:border-brand hover:text-brand"
+                className="inline-flex h-9 items-center rounded border border-white/10 px-3 text-xs font-bold text-white/60 transition hover:border-white/25 hover:text-white"
               >
                 목록
               </Link>
@@ -674,7 +671,7 @@ export default function ReviewRoomWorkspace({
             <button
               type="button"
               onClick={copyShare}
-              className="inline-flex h-9 items-center gap-2 rounded border border-white/10 px-3 text-xs font-bold text-white/60 transition hover:border-brand hover:text-brand"
+              className="inline-flex h-9 items-center gap-2 rounded border border-white/10 px-3 text-xs font-bold text-white/60 transition hover:border-white/25 hover:text-white"
             >
               <Clipboard size={14} />
               공유 링크
@@ -684,7 +681,7 @@ export default function ReviewRoomWorkspace({
                 href={currentVideo.youtube_url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-9 items-center gap-2 rounded border border-white/10 px-3 text-xs font-bold text-white/60 transition hover:border-brand hover:text-brand"
+                className="inline-flex h-9 items-center gap-2 rounded border border-white/10 px-3 text-xs font-bold text-white/60 transition hover:border-white/25 hover:text-white"
               >
                 <ExternalLink size={14} />
                 YouTube
@@ -747,7 +744,7 @@ export default function ReviewRoomWorkspace({
                     {stageThumbnail.label}
                   </span>
                   {stageThumbnail.status === 'selected' && (
-                    <span className="inline-flex items-center gap-1 rounded bg-emerald-400/90 px-2 py-1 text-[11px] font-black text-black">
+                    <span className="inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-[11px] font-black text-black">
                       <CheckCircle2 size={12} />
                       선택됨
                     </span>
@@ -864,7 +861,7 @@ export default function ReviewRoomWorkspace({
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                     {thumbnail.status === 'selected' && (
-                      <span className="absolute right-1 top-1 rounded bg-emerald-400/90 p-0.5 text-black">
+                      <span className="absolute right-1 top-1 rounded bg-white p-0.5 text-black">
                         <CheckCircle2 size={12} />
                       </span>
                     )}
@@ -886,8 +883,8 @@ export default function ReviewRoomWorkspace({
                     className={cls(
                       'block w-full cursor-pointer border-t px-1.5 py-1 text-center text-[10px] font-black transition',
                       thumbnail.status === 'selected'
-                        ? 'border-emerald-300/25 bg-emerald-300/10 text-emerald-200'
-                        : 'border-white/10 text-white/45 hover:bg-brand/15 hover:text-brand'
+                        ? 'border-white/10 bg-white/10 text-white'
+                        : 'border-white/10 text-white/45 hover:bg-white/10 hover:text-white'
                     )}
                   >
                     {thumbnail.status === 'selected' ? `선택됨 · ${thumbnail.selected_by ?? ''}` : '이 시안 선택'}
@@ -898,7 +895,7 @@ export default function ReviewRoomWorkspace({
                 type="button"
                 disabled={uploadBusy}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex w-24 flex-shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-white/20 px-2 py-2 text-[11px] font-bold text-white/45 transition hover:border-brand hover:text-brand disabled:opacity-40"
+                className="flex w-24 flex-shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-white/20 px-2 py-2 text-[11px] font-bold text-white/45 transition hover:border-white/40 hover:text-white disabled:opacity-40"
               >
                 {uploadBusy ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
                 썸네일 추가
@@ -1006,7 +1003,7 @@ export default function ReviewRoomWorkspace({
                         <button
                           type="button"
                           onClick={captureTime}
-                          className="inline-flex h-9 items-center rounded border border-white/10 px-3 text-xs font-bold text-white/55 transition hover:border-brand hover:text-brand"
+                          className="inline-flex h-9 items-center rounded border border-white/10 px-3 text-xs font-bold text-white/55 transition hover:border-white/25 hover:text-white"
                         >
                           현재 {formatTimecode(playerTime())}
                         </button>
@@ -1060,7 +1057,7 @@ export default function ReviewRoomWorkspace({
             <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
               <div className="flex items-center justify-between">
                 <h2 className="inline-flex items-center gap-2 text-sm font-black">
-                  <MessageSquare size={16} className="text-brand" />
+                  <MessageSquare size={16} className="text-white/40" />
                   코멘트
                 </h2>
                 <span className="text-xs text-white/35">{annotations.length}개</span>

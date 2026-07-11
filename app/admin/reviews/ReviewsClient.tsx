@@ -388,7 +388,7 @@ export default function ReviewsClient({
                   className={cls(
                     'inline-flex items-center gap-1 rounded border px-2 py-1 text-xs font-bold',
                     room.status === 'approved'
-                      ? 'border-emerald-300/20 bg-emerald-300/10 text-emerald-100'
+                      ? 'border-white/10 bg-white text-black'
                       : room.status === 'open' || room.status === 'in_review'
                         ? 'border-brand/25 bg-brand/10 text-brand'
                         : 'border-white/10 text-white/45'
