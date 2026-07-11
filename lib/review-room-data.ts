@@ -88,12 +88,15 @@ export async function loadReviewRoomByToken(token: string) {
   if (error) console.error('[review-room] room by token', error);
   if (!room) return null;
 
-  await supabase
-    .from('react_review_rooms')
-    .update({ last_viewed_at: new Date().toISOString() })
-    .eq('id', room.id);
-
-  return loadReviewRoomChildren(room as Record<string, unknown>);
+  // last_viewed_at 갱신은 응답을 막지 않도록 children 로딩과 병렬 수행
+  const [children] = await Promise.all([
+    loadReviewRoomChildren(room as Record<string, unknown>),
+    supabase
+      .from('react_review_rooms')
+      .update({ last_viewed_at: new Date().toISOString() })
+      .eq('id', room.id),
+  ]);
+  return children;
 }
 
 async function loadReviewRoomChildren(room: Record<string, unknown>): Promise<ReviewRoomRow> {
