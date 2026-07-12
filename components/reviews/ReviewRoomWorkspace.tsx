@@ -188,6 +188,10 @@ export default function ReviewRoomWorkspace({
   // 상태 칩 드롭다운 (열려 있는 코멘트 id)
   const [statusMenuId, setStatusMenuId] = useState<number | null>(null);
 
+  // 모바일 코멘트 바텀시트 (Figma 모바일 패턴): peek(접힘) / half / full
+  const [sheetState, setSheetState] = useState<'peek' | 'half' | 'full'>('peek');
+  const sheetDragY = useRef<number | null>(null);
+
   const [replyText, setReplyText] = useState<Record<number, string>>({});
   const [busy, setBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
@@ -300,6 +304,52 @@ export default function ReviewRoomWorkspace({
     setDragStart(null);
   }
 
+  const SHEET_HEIGHTS: Record<'peek' | 'half' | 'full', string> = {
+    peek: '4rem',
+    half: '48dvh',
+    full: 'calc(100dvh - 84px)',
+  };
+
+  function isMobileViewport() {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 1279px)').matches;
+  }
+
+  function openSheetTo(state: 'peek' | 'half' | 'full') {
+    if (isMobileViewport()) setSheetState(state);
+  }
+
+  // 코멘트 카드로 이동: 모바일이면 시트를 반쯤 올리고 해당 카드로 스크롤
+  function revealAnnotationCard(id: number) {
+    openSheetTo('half');
+    setTimeout(() => {
+      document.getElementById(`rc-${id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 250);
+  }
+
+  function handleSheetHandlePointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    sheetDragY.current = event.clientY;
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // capture 실패해도 탭 동작은 유지
+    }
+  }
+
+  function handleSheetHandlePointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    if (sheetDragY.current == null) return;
+    const dy = event.clientY - sheetDragY.current;
+    sheetDragY.current = null;
+    const order = ['peek', 'half', 'full'] as const;
+    const idx = order.indexOf(sheetState);
+    if (Math.abs(dy) < 30) {
+      // 탭: 접힘 ↔ 반열림
+      setSheetState(sheetState === 'peek' ? 'half' : 'peek');
+      return;
+    }
+    if (dy < 0 && idx < order.length - 1) setSheetState(order[idx + 1]);
+    if (dy > 0 && idx > 0) setSheetState(order[idx - 1]);
+  }
+
   function selectVersion(videoId: number) {
     setSelectedVideoId(videoId);
     setVersionMenuOpen(false);
@@ -312,6 +362,7 @@ export default function ReviewRoomWorkspace({
 
   function focusAnnotation(annotation: ReviewAnnotationRow) {
     setSelectedId(annotation.id);
+    revealAnnotationCard(annotation.id);
     if (annotation.thumbnail_id) {
       if (thumbnails.some((t) => t.id === annotation.thumbnail_id)) switchStage(annotation.thumbnail_id);
       return;
@@ -338,6 +389,7 @@ export default function ReviewRoomWorkspace({
     } catch {
       // pointer capture 거부돼도 드래그는 계속 진행
     }
+    openSheetTo('peek'); // 작성 중엔 시트를 내려 화면 확보
     setDragStart(overlayPoint(event));
   }
 
@@ -990,6 +1042,7 @@ export default function ReviewRoomWorkspace({
                       setCommentMode((v) => !v);
                       setComposer(null);
                       setComposerText('');
+                      if (!commentMode) openSheetTo('peek');
                     }}
                     className={cls(
                       'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[11px] font-black transition',
@@ -1239,9 +1292,55 @@ export default function ReviewRoomWorkspace({
             />
           </div>
 
-          {/* 코멘트 패널 */}
-          <aside className="space-y-3 xl:col-start-2 xl:row-span-2 xl:row-start-1">
-            <div className="rounded-md border border-white/10 bg-white/[0.025] p-2.5">
+          {/* 코멘트 패널 — 모바일: 바텀시트(Figma 모바일 패턴) / 데스크톱: 우측 고정 패널 */}
+          <aside
+            className={cls(
+              'fixed inset-x-0 bottom-0 z-40 flex h-[var(--sheet-h)] flex-col rounded-t-2xl border border-b-0 border-white/15 bg-[#0e0e0e] shadow-[0_-10px_40px_rgba(0,0,0,0.7)] transition-[height] duration-300',
+              'xl:static xl:z-auto xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:h-auto xl:rounded-none xl:border-0 xl:bg-transparent xl:shadow-none xl:transition-none'
+            )}
+            style={{ ['--sheet-h' as string]: SHEET_HEIGHTS[sheetState] }}
+          >
+            {/* 모바일 시트 핸들: 탭=접기/펴기, 위아래 스와이프=단계 이동 */}
+            <div
+              className="flex-shrink-0 cursor-grab touch-none select-none xl:hidden"
+              onPointerDown={handleSheetHandlePointerDown}
+              onPointerUp={handleSheetHandlePointerUp}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  setSheetState((prev) => (prev === 'peek' ? 'half' : 'peek'));
+                }
+              }}
+              aria-label="코멘트 패널 열기/닫기"
+            >
+              <div className="flex justify-center pt-2.5">
+                <span className="h-1 w-10 rounded-full bg-white/25" />
+              </div>
+              <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-1.5">
+                <span className="inline-flex items-center gap-2 text-sm font-black text-white">
+                  <MessageSquare size={15} className="text-white/40" />
+                  코멘트 {panelAnnotations.length}
+                  {openCount > 0 && <span className="text-xs font-bold text-brand">미해결 {openCount}</span>}
+                </span>
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onPointerUp={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setSheetState((prev) => (prev === 'full' ? 'half' : 'full'));
+                  }}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-white/55 transition hover:text-white"
+                  aria-label={sheetState === 'full' ? '시트 줄이기' : '전체 화면으로 펼치기'}
+                >
+                  <ChevronDown size={14} className={cls('transition-transform', sheetState !== 'full' && 'rotate-180')} />
+                </button>
+              </div>
+            </div>
+
+            {/* 필터 바 */}
+            <div className="flex-shrink-0 border-b border-white/10 px-3 pb-2 xl:rounded-md xl:border xl:border-white/10 xl:bg-white/[0.025] xl:p-2.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1">
                   <button
@@ -1274,13 +1373,13 @@ export default function ReviewRoomWorkspace({
                   />
                   미해결만
                 </label>
-                <span className="text-xs text-white/35">
+                <span className="hidden text-xs text-white/35 xl:inline">
                   {panelAnnotations.length}개{openCount > 0 && ` · 전체 미해결 ${openCount}`}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2.5 xl:max-h-[calc(100vh-150px)] xl:overflow-auto xl:pr-1">
+            <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-3 pb-8 pt-2.5 xl:mt-3 xl:max-h-[calc(100vh-150px)] xl:flex-none xl:overflow-auto xl:px-0 xl:pb-0 xl:pr-1">
               {panelAnnotations.length === 0 ? (
                 <div className="rounded-md border border-white/10 p-8 text-center text-sm leading-relaxed text-white/35">
                   아직 코멘트가 없습니다.
@@ -1301,6 +1400,7 @@ export default function ReviewRoomWorkspace({
                   return (
                     <article
                       key={annotation.id}
+                      id={`rc-${annotation.id}`}
                       className={cls(
                         'rounded-md border bg-white/[0.025] p-3 transition',
                         active ? 'border-brand/60' : 'border-white/10 hover:border-white/25',
@@ -1456,6 +1556,9 @@ export default function ReviewRoomWorkspace({
             </div>
           </aside>
         </div>
+
+        {/* 모바일: 바텀시트 peek 높이만큼 하단 여백 확보 */}
+        <div className="h-16 xl:hidden" />
       </main>
     </div>
   );
