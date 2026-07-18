@@ -1,31 +1,23 @@
 'use client';
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MouseEvent,
-  type PointerEvent as ReactPointerEvent,
-} from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import Link from 'next/link';
 /* eslint-disable @next/next/no-img-element */
 import {
   Check,
   ChevronDown,
   Clipboard,
+  Clock3,
   ExternalLink,
   Image as ImageIcon,
   ImagePlus,
   Layers,
   Loader2,
   MessageSquare,
-  MessageSquarePlus,
-  MoveHorizontal,
+  Pause,
   PauseCircle,
   Play,
   Send,
-  X,
 } from 'lucide-react';
 import {
   REVIEW_ANNOTATION_STATUS_OPTIONS,
@@ -50,7 +42,9 @@ type StageTarget = 'video' | number; // number = thumbnail id
 type YTPlayer = {
   getCurrentTime: () => number;
   getDuration: () => number;
+  getPlayerState: () => number;
   seekTo: (seconds: number, allowSeekAhead?: boolean) => void;
+  playVideo: () => void;
   pauseVideo: () => void;
   destroy: () => void;
 };
@@ -99,23 +93,7 @@ function cls(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ');
 }
 
-function safePct(value: number | null | undefined, fallback = 0) {
-  return Math.min(100, Math.max(0, Number.isFinite(Number(value)) ? Number(value) : fallback));
-}
-
 const AUTHOR_STORAGE_KEY = 'react-review-author';
-
-// 저장된 핀/영역 마커가 화면 위에 보이는 시간 창(초)
-const MARKER_WINDOW_SEC = 2;
-
-type ComposerDraft = {
-  shape: 'pin' | 'box';
-  x_pct: number;
-  y_pct: number;
-  w_pct: number | null;
-  h_pct: number | null;
-  time_sec: number;
-};
 
 // 종결 상태 = 처리완료·반려·확인완료 (미해결 필터에서 제외)
 function isDone(annotation: ReviewAnnotationRow) {
@@ -165,17 +143,11 @@ export default function ReviewRoomWorkspace({
   const [authorName, setAuthorName] = useState(defaultAuthorName);
   const [authorRole, setAuthorRole] = useState<ReviewAuthorRole>(defaultAuthorRole);
 
-  // Figma식 화면 코멘트 모드 + 말풍선 컴포저
-  const [commentMode, setCommentMode] = useState(false);
-  const [composer, setComposer] = useState<ComposerDraft | null>(null);
-  const [composerText, setComposerText] = useState('');
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
-
-  // 하단 코멘트 바 (타임코드/구간)
+  // 유튜브 댓글식 하단 코멘트 바: 입력 시작 시 일시정지 + 타임코드 고정
   const [barText, setBarText] = useState('');
-  const [barRangeEnd, setBarRangeEnd] = useState<number | null>(null);
-  const [barRangeOn, setBarRangeOn] = useState(false);
   const [barStart, setBarStart] = useState(0);
+  const [barFrozen, setBarFrozen] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // 코멘트 패널 필터
   const [showAllVersions, setShowAllVersions] = useState(false);
@@ -202,7 +174,6 @@ export default function ReviewRoomWorkspace({
   const playerHostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const shareUrl = siteOrigin ? `${siteOrigin}${roomSharePath(room.share_token)}` : roomSharePath(room.share_token);
   const stageThumbnail = stage === 'video' ? null : thumbnails.find((t) => t.id === stage) ?? null;
@@ -254,6 +225,7 @@ export default function ReviewRoomWorkspace({
             interval = setInterval(() => {
               const next = player.getCurrentTime?.() ?? 0;
               setCurrentTime(next);
+              setIsPlaying(player.getPlayerState?.() === 1);
               const d = player.getDuration?.() ?? 0;
               if (d) setDuration(d);
             }, 500);
@@ -267,28 +239,24 @@ export default function ReviewRoomWorkspace({
       if (interval) clearInterval(interval);
       playerRef.current?.destroy?.();
       playerRef.current = null;
+      setIsPlaying(false);
     };
   }, [selectedVideo?.youtube_video_id]);
-
-  // ESC로 컴포저 닫기 (Figma 패턴)
-  useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setComposer(null);
-        setComposerText('');
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  useEffect(() => {
-    if (composer) composerInputRef.current?.focus();
-  }, [composer]);
 
   function playerTime() {
     const time = playerRef.current?.getCurrentTime?.() ?? currentTime;
     return Number.isFinite(time) ? Math.max(0, time) : 0;
+  }
+
+  function togglePlay() {
+    if (!playerRef.current) return;
+    if (playerRef.current.getPlayerState?.() === 1) {
+      playerRef.current.pauseVideo?.();
+      setIsPlaying(false);
+    } else {
+      playerRef.current.playVideo?.();
+      setIsPlaying(true);
+    }
   }
 
   function seekTo(seconds: number, annotationId?: number) {
@@ -299,9 +267,6 @@ export default function ReviewRoomWorkspace({
 
   function switchStage(next: StageTarget) {
     setStage(next);
-    setComposer(null);
-    setComposerText('');
-    setDragStart(null);
   }
 
   const SHEET_HEIGHTS: Record<'peek' | 'half' | 'full', string> = {
@@ -356,8 +321,7 @@ export default function ReviewRoomWorkspace({
     switchStage('video');
     setSelectedId(null);
     setCurrentTime(0);
-    setBarRangeOn(false);
-    setBarRangeEnd(null);
+    setBarFrozen(false);
   }
 
   function focusAnnotation(annotation: ReviewAnnotationRow) {
@@ -374,63 +338,18 @@ export default function ReviewRoomWorkspace({
     seekTo(annotation.time_sec, annotation.id);
   }
 
-  function overlayPoint(event: ReactPointerEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return {
-      x: safePct(((event.clientX - rect.left) / rect.width) * 100),
-      y: safePct(((event.clientY - rect.top) / rect.height) * 100),
-    };
-  }
-
-  function handleOverlayPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    event.preventDefault();
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      // pointer capture 거부돼도 드래그는 계속 진행
-    }
-    openSheetTo('peek'); // 작성 중엔 시트를 내려 화면 확보
-    setDragStart(overlayPoint(event));
-  }
-
-  function handleOverlayPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!dragStart) return;
-    const point = overlayPoint(event);
-    const w = Math.abs(point.x - dragStart.x);
-    const h = Math.abs(point.y - dragStart.y);
-    if (w < 1.5 && h < 1.5) return;
-    // 드래그 중엔 실시간으로 영역 프리뷰
-    setComposer({
-      shape: 'box',
-      x_pct: (dragStart.x + point.x) / 2,
-      y_pct: (dragStart.y + point.y) / 2,
-      w_pct: w,
-      h_pct: h,
-      time_sec: onThumbnailStage ? 0 : playerTime(),
-    });
-  }
-
-  function handleOverlayPointerUp(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!dragStart) return;
-    const point = overlayPoint(event);
-    const w = Math.abs(point.x - dragStart.x);
-    const h = Math.abs(point.y - dragStart.y);
+  // 유튜브 댓글식: 입력을 시작하면 영상을 멈추고 그 시점 타임코드를 고정
+  function freezeBarTime() {
+    if (onThumbnailStage || barFrozen) return;
     playerRef.current?.pauseVideo?.();
-    const timeSec = onThumbnailStage ? 0 : playerTime();
-    if (w < 1.5 && h < 1.5) {
-      // 클릭 = 핀
-      setComposer({ shape: 'pin', x_pct: point.x, y_pct: point.y, w_pct: null, h_pct: null, time_sec: timeSec });
-    } else {
-      setComposer({
-        shape: 'box',
-        x_pct: (dragStart.x + point.x) / 2,
-        y_pct: (dragStart.y + point.y) / 2,
-        w_pct: w,
-        h_pct: h,
-        time_sec: timeSec,
-      });
-    }
-    setDragStart(null);
+    setIsPlaying(false);
+    setBarStart(playerTime());
+    setBarFrozen(true);
+  }
+
+  function recaptureBarTime() {
+    setBarStart(playerTime());
+    setBarFrozen(true);
   }
 
   async function postAnnotation(payload: Record<string, unknown>) {
@@ -444,34 +363,10 @@ export default function ReviewRoomWorkspace({
       }),
     });
     const result = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(result.error ?? '코멘트 저장에 실패했습니다.');
+    if (!res.ok) throw new Error(result.error ?? '댓글 저장에 실패했습니다.');
     setAnnotations((prev) => [...prev, result.annotation].sort((a, b) => a.time_sec - b.time_sec));
     setSelectedId(result.annotation.id);
     return result.annotation as ReviewAnnotationRow;
-  }
-
-  async function submitComposer() {
-    if (!composer || !composerText.trim() || !authorName.trim()) return;
-    setBusy(true);
-    setError('');
-    try {
-      await postAnnotation({
-        body: composerText,
-        shape: composer.shape,
-        time_sec: composer.time_sec,
-        x_pct: composer.x_pct,
-        y_pct: composer.y_pct,
-        w_pct: composer.w_pct,
-        h_pct: composer.h_pct,
-        thumbnail_id: onThumbnailStage ? stageThumbnail?.id : null,
-      });
-      setComposer(null);
-      setComposerText('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '코멘트 저장에 실패했습니다.');
-    } finally {
-      setBusy(false);
-    }
   }
 
   async function submitBar() {
@@ -481,16 +376,13 @@ export default function ReviewRoomWorkspace({
     try {
       if (onThumbnailStage) {
         await postAnnotation({ body: barText, shape: 'time', time_sec: 0, thumbnail_id: stageThumbnail?.id });
-      } else if (barRangeOn && barRangeEnd != null && barRangeEnd > barStart) {
-        await postAnnotation({ body: barText, shape: 'range', time_sec: barStart, end_time_sec: barRangeEnd });
       } else {
-        await postAnnotation({ body: barText, shape: 'time', time_sec: playerTime() });
+        await postAnnotation({ body: barText, shape: 'time', time_sec: barFrozen ? barStart : playerTime() });
       }
       setBarText('');
-      setBarRangeOn(false);
-      setBarRangeEnd(null);
+      setBarFrozen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '코멘트 저장에 실패했습니다.');
+      setError(err instanceof Error ? err.message : '댓글 저장에 실패했습니다.');
     } finally {
       setBusy(false);
     }
@@ -679,25 +571,6 @@ export default function ReviewRoomWorkspace({
 
   const openCount = annotations.filter((a) => !isDone(a)).length;
 
-  // 화면 마커: 코멘트의 타임코드 ±2초 구간이거나 선택됐을 때만 표시
-  const visibleStageMarkers = onThumbnailStage
-    ? annotations.filter((a) => a.thumbnail_id === stageThumbnail?.id && a.x_pct != null && a.y_pct != null)
-    : selectedVideoAnnotations.filter((a) => {
-        if (a.x_pct == null || a.y_pct == null) return false;
-        if (selectedId === a.id) return true;
-        if (a.end_time_sec != null) {
-          return currentTime >= a.time_sec - 0.5 && currentTime <= Number(a.end_time_sec) + 0.5;
-        }
-        return Math.abs(currentTime - a.time_sec) <= MARKER_WINDOW_SEC;
-      });
-
-  // 핀 번호: 패널 목록 순서와 1:1 매칭
-  const numberById = useMemo(() => {
-    const map = new Map<number, number>();
-    panelAnnotations.forEach((a, index) => map.set(a.id, index + 1));
-    return map;
-  }, [panelAnnotations]);
-
   const versionLabelByVideoId = useMemo(() => {
     const map = new Map<number, string>();
     videos.forEach((v) => map.set(v.id, vLabel(v.version_label)));
@@ -708,150 +581,7 @@ export default function ReviewRoomWorkspace({
     annotations.filter((a) => a.thumbnail_id === thumbnailId).length;
 
   const needName = !authorName.trim();
-
-  function renderMarker(annotation: ReviewAnnotationRow) {
-    const active = selectedId === annotation.id;
-    const number = numberById.get(annotation.id);
-    const x = safePct(annotation.x_pct);
-    const y = safePct(annotation.y_pct);
-    const w = safePct(annotation.w_pct, 14);
-    const h = safePct(annotation.h_pct, 10);
-    return annotation.shape === 'box' ? (
-      <button
-        key={annotation.id}
-        type="button"
-        onClick={() => focusAnnotation(annotation)}
-        className={cls(
-          'pointer-events-auto absolute rounded border-2 transition',
-          active ? 'border-brand bg-brand/15' : 'border-white/80 bg-black/10 hover:border-white'
-        )}
-        style={{
-          left: `${Math.max(0, x - w / 2)}%`,
-          top: `${Math.max(0, y - h / 2)}%`,
-          width: `${w}%`,
-          height: `${h}%`,
-        }}
-        aria-label={`코멘트 ${number ?? annotation.id}`}
-      >
-        {number != null && (
-          <span
-            className={cls(
-              'absolute -left-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full rounded-bl-none border text-[11px] font-black',
-              active ? 'border-brand bg-brand text-white' : 'border-white bg-black/80 text-white'
-            )}
-          >
-            {number}
-          </span>
-        )}
-      </button>
-    ) : (
-      <button
-        key={annotation.id}
-        type="button"
-        onClick={() => focusAnnotation(annotation)}
-        className={cls(
-          'pointer-events-auto absolute flex h-7 w-7 -translate-x-1/2 -translate-y-full items-center justify-center rounded-full rounded-bl-none border-2 text-xs font-black transition',
-          active ? 'border-brand bg-brand text-white' : 'border-white bg-black/80 text-white hover:bg-black'
-        )}
-        style={{ left: `${x}%`, top: `${y}%` }}
-        aria-label={`코멘트 ${number ?? annotation.id}`}
-      >
-        {number ?? ''}
-      </button>
-    );
-  }
-
-  // Figma식: 찍은 자리 옆에 뜨는 말풍선 컴포저
-  function renderComposer() {
-    if (!composer) return null;
-    const flipX = composer.x_pct > 55;
-    const flipY = composer.y_pct > 55;
-    return (
-      <>
-        {composer.shape === 'pin' ? (
-          <div
-            className="pointer-events-none absolute z-40 flex h-7 w-7 -translate-x-1/2 -translate-y-full items-center justify-center rounded-full rounded-bl-none border-2 border-brand bg-brand text-white"
-            style={{ left: `${composer.x_pct}%`, top: `${composer.y_pct}%` }}
-          >
-            <MessageSquarePlus size={13} />
-          </div>
-        ) : (
-          <div
-            className="pointer-events-none absolute z-40 rounded border-2 border-brand bg-brand/10"
-            style={{
-              left: `${Math.max(0, composer.x_pct - (composer.w_pct ?? 0) / 2)}%`,
-              top: `${Math.max(0, composer.y_pct - (composer.h_pct ?? 0) / 2)}%`,
-              width: `${Math.max(0.5, composer.w_pct ?? 0)}%`,
-              height: `${Math.max(0.5, composer.h_pct ?? 0)}%`,
-            }}
-          />
-        )}
-        {!dragStart && (
-          <div
-            className="pointer-events-auto absolute z-50 w-64 max-w-[85vw]"
-            style={{
-              left: `${composer.x_pct}%`,
-              top: `${composer.y_pct}%`,
-              transform: `translate(${flipX ? 'calc(-100% - 12px)' : '12px'}, ${flipY ? 'calc(-100% - 12px)' : '12px'})`,
-            }}
-          >
-            <div className="rounded-lg border border-white/15 bg-[#141414] p-2.5 shadow-2xl">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[11px] font-bold text-white/45">
-                  {onThumbnailStage ? stageThumbnail?.label : formatTimecode(composer.time_sec)}
-                  {composer.shape === 'box' && ' · 영역'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setComposer(null);
-                    setComposerText('');
-                  }}
-                  className="text-white/40 transition hover:text-white"
-                  aria-label="닫기"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-              {needName && (
-                <input
-                  value={authorName}
-                  onChange={(event) => setAuthorName(event.target.value)}
-                  placeholder="이름 (첫 코멘트 시 1회)"
-                  className="mb-2 h-8 w-full rounded border border-white/10 bg-black px-2 text-xs text-white outline-none placeholder:text-white/30 focus:border-brand"
-                />
-              )}
-              <textarea
-                ref={composerInputRef}
-                value={composerText}
-                onChange={(event) => setComposerText(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault();
-                    submitComposer();
-                  }
-                }}
-                rows={2}
-                placeholder="코멘트 입력 후 Enter"
-                className="w-full resize-none rounded border border-white/10 bg-black px-2 py-1.5 text-sm leading-relaxed text-white outline-none placeholder:text-white/30 focus:border-brand"
-              />
-              <div className="mt-2 flex justify-end">
-                <button
-                  type="button"
-                  disabled={busy || !composerText.trim() || needName}
-                  onClick={submitComposer}
-                  className="inline-flex h-8 items-center gap-1.5 rounded bg-white px-3 text-xs font-black text-black transition hover:bg-brand hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                >
-                  <Send size={12} />
-                  등록
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
+  const barTimeDisplay = onThumbnailStage ? null : formatTimecode(barFrozen ? barStart : currentTime);
 
   return (
     <div className="min-h-screen bg-[#080808] text-white">
@@ -903,7 +633,7 @@ export default function ReviewRoomWorkspace({
                                 )}
                               </span>
                               <span className="text-xs text-white/40">
-                                코멘트 {count}
+                                댓글 {count}
                                 {open > 0 && <span className="ml-1 text-brand">· 미해결 {open}</span>}
                               </span>
                             </button>
@@ -970,27 +700,12 @@ export default function ReviewRoomWorkspace({
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_420px]">
-          {/* 스테이지 + 타임라인 (모바일 sticky) */}
+          {/* 스테이지 + 타임라인 + 댓글 바 (모바일 sticky) */}
           <div className="sticky top-0 z-30 -mx-3 space-y-2 bg-[#080808] px-3 pb-2 sm:-mx-4 sm:px-4 xl:static xl:col-start-1 xl:row-start-1 xl:mx-0 xl:space-y-3 xl:bg-transparent xl:p-0">
             {/* 영상 스테이지 */}
             <div className={cls('relative aspect-video overflow-hidden rounded-md border border-white/10 bg-black', onThumbnailStage && 'hidden')}>
               {selectedVideo?.youtube_video_id ? (
-                <>
-                  <div ref={playerHostRef} className="h-full w-full" />
-                  <div className="pointer-events-none absolute inset-0">
-                    {commentMode && (
-                      <div
-                        className="pointer-events-auto absolute inset-0 cursor-crosshair touch-none"
-                        onPointerDown={handleOverlayPointerDown}
-                        onPointerMove={handleOverlayPointerMove}
-                        onPointerUp={handleOverlayPointerUp}
-                        title="클릭=핀 · 드래그=영역"
-                      />
-                    )}
-                    {visibleStageMarkers.map(renderMarker)}
-                    {!onThumbnailStage && renderComposer()}
-                  </div>
-                </>
+                <div ref={playerHostRef} className="h-full w-full" />
               ) : (
                 <div className="flex h-full flex-col items-center justify-center px-6 text-center">
                   <PauseCircle size={42} className="mb-3 text-white/25" />
@@ -1006,17 +721,6 @@ export default function ReviewRoomWorkspace({
             {onThumbnailStage && stageThumbnail && (
               <div className="relative overflow-hidden rounded-md border border-white/10 bg-black">
                 <img src={stageThumbnail.image_url} alt={stageThumbnail.label} className="block h-auto w-full" />
-                <div className="pointer-events-none absolute inset-0">
-                  <div
-                    className="pointer-events-auto absolute inset-0 cursor-crosshair touch-none"
-                    onPointerDown={handleOverlayPointerDown}
-                    onPointerMove={handleOverlayPointerMove}
-                    onPointerUp={handleOverlayPointerUp}
-                    title="클릭=핀 · 드래그=영역"
-                  />
-                  {visibleStageMarkers.map(renderMarker)}
-                  {renderComposer()}
-                </div>
                 <div className="pointer-events-none absolute left-2 top-2 flex items-center gap-1.5">
                   <span className="rounded bg-black/70 px-2 py-1 text-[11px] font-bold text-white">
                     {stageThumbnail.label}
@@ -1031,96 +735,83 @@ export default function ReviewRoomWorkspace({
               </div>
             )}
 
-            {/* 타임라인 + 화면 코멘트 토글 */}
+            {/* 재생/정지 + 타임라인 (영상 스테이지에서만) */}
             {!onThumbnailStage && (
               <div className="rounded-md border border-white/10 bg-white/[0.025] p-3">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <span className="text-xs font-bold text-white/45">{formatTimecode(currentTime)}</span>
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      setCommentMode((v) => !v);
-                      setComposer(null);
-                      setComposerText('');
-                      if (!commentMode) openSheetTo('peek');
-                    }}
-                    className={cls(
-                      'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[11px] font-black transition',
-                      commentMode
-                        ? 'border-brand bg-brand text-white'
-                        : 'border-white/15 text-white/55 hover:border-white/35 hover:text-white'
-                    )}
+                    onClick={togglePlay}
+                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-brand hover:text-white"
+                    aria-label={isPlaying ? '일시정지' : '재생'}
                   >
-                    <MessageSquarePlus size={13} />
-                    {commentMode ? '화면 코멘트 중 · 클릭=핀 드래그=영역' : '화면에 코멘트'}
+                    {isPlaying ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
                   </button>
-                  <span className="text-xs text-white/30">{formatTimecode(markerDuration)}</span>
-                </div>
-                <div
-                  className="relative h-3 cursor-pointer rounded-full bg-white/10"
-                  onClick={(event) => {
-                    const rect = event.currentTarget.getBoundingClientRect();
-                    const pct = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-                    seekTo(pct * markerDuration);
-                  }}
-                >
+                  <span className="w-12 flex-shrink-0 text-xs font-bold tabular-nums text-white/60">
+                    {formatTimecode(currentTime)}
+                  </span>
                   <div
-                    className="pointer-events-none absolute top-0 h-3 rounded-full bg-white/25"
-                    style={{ width: `${Math.min(100, (currentTime / markerDuration) * 100)}%` }}
-                  />
-                  {selectedVideoAnnotations
-                    .filter((a) => a.end_time_sec != null)
-                    .map((a) => (
-                      <button
-                        key={`range-${a.id}`}
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          focusAnnotation(a);
-                        }}
-                        className={cls(
-                          'absolute top-1/2 h-3 -translate-y-1/2 rounded-full transition',
-                          selectedId === a.id ? 'bg-brand/70' : 'bg-brand/35 hover:bg-brand/60'
-                        )}
-                        style={{
-                          left: `${Math.min(100, (a.time_sec / markerDuration) * 100)}%`,
-                          width: `${Math.max(1, ((Number(a.end_time_sec) - a.time_sec) / markerDuration) * 100)}%`,
-                        }}
-                        aria-label={`${formatTimeRange(a.time_sec, a.end_time_sec)} 구간 코멘트`}
-                      />
-                    ))}
-                  {selectedVideoAnnotations
-                    .filter((a) => a.end_time_sec == null)
-                    .map((a) => (
-                      <button
-                        key={a.id}
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          focusAnnotation(a);
-                        }}
-                        className={cls(
-                          'absolute top-1/2 h-5 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition',
-                          selectedId === a.id ? 'bg-brand' : isDone(a) ? 'bg-white/35 hover:bg-white' : 'bg-white hover:bg-brand'
-                        )}
-                        style={{ left: `${Math.min(100, (a.time_sec / markerDuration) * 100)}%` }}
-                        aria-label={`${formatTimecode(a.time_sec)} 코멘트`}
-                      />
-                    ))}
-                  {barRangeOn && barRangeEnd != null && (
+                    className="relative h-3 min-w-0 flex-1 cursor-pointer rounded-full bg-white/10"
+                    onClick={(event) => {
+                      const rect = event.currentTarget.getBoundingClientRect();
+                      const pct = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+                      seekTo(pct * markerDuration);
+                    }}
+                  >
                     <div
-                      className="pointer-events-none absolute top-1/2 h-3 -translate-y-1/2 rounded-full border border-dashed border-brand bg-brand/20"
-                      style={{
-                        left: `${Math.min(100, (barStart / markerDuration) * 100)}%`,
-                        width: `${Math.max(1, ((barRangeEnd - barStart) / markerDuration) * 100)}%`,
-                      }}
+                      className="pointer-events-none absolute top-0 h-3 rounded-full bg-white/25"
+                      style={{ width: `${Math.min(100, (currentTime / markerDuration) * 100)}%` }}
                     />
-                  )}
+                    {/* 구간(레거시) 밴드 표시 */}
+                    {selectedVideoAnnotations
+                      .filter((a) => a.end_time_sec != null)
+                      .map((a) => (
+                        <button
+                          key={`range-${a.id}`}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            focusAnnotation(a);
+                          }}
+                          className={cls(
+                            'absolute top-1/2 h-3 -translate-y-1/2 rounded-full transition',
+                            selectedId === a.id ? 'bg-brand/70' : 'bg-brand/35 hover:bg-brand/60'
+                          )}
+                          style={{
+                            left: `${Math.min(100, (a.time_sec / markerDuration) * 100)}%`,
+                            width: `${Math.max(1, ((Number(a.end_time_sec) - a.time_sec) / markerDuration) * 100)}%`,
+                          }}
+                          aria-label={`${formatTimeRange(a.time_sec, a.end_time_sec)} 댓글`}
+                        />
+                      ))}
+                    {/* 타임코드 댓글 마커 */}
+                    {selectedVideoAnnotations
+                      .filter((a) => a.end_time_sec == null)
+                      .map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            focusAnnotation(a);
+                          }}
+                          className={cls(
+                            'absolute top-1/2 h-5 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full transition',
+                            selectedId === a.id ? 'bg-brand' : isDone(a) ? 'bg-white/35 hover:bg-white' : 'bg-white hover:bg-brand'
+                          )}
+                          style={{ left: `${Math.min(100, (a.time_sec / markerDuration) * 100)}%` }}
+                          aria-label={`${formatTimecode(a.time_sec)} 댓글`}
+                        />
+                      ))}
+                  </div>
+                  <span className="w-12 flex-shrink-0 text-right text-xs tabular-nums text-white/30">
+                    {formatTimecode(markerDuration)}
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* 하단 코멘트 바 (Frame.io 패턴) */}
+            {/* 유튜브 댓글식 하단 댓글 바 */}
             <div className="rounded-md border border-white/10 bg-white/[0.025] p-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <input
@@ -1140,66 +831,46 @@ export default function ReviewRoomWorkspace({
                     </option>
                   ))}
                 </select>
-                {!onThumbnailStage && !barRangeOn && (
+                {barTimeDisplay && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setBarStart(playerTime());
-                      setBarRangeOn(true);
-                      setBarRangeEnd(null);
-                    }}
-                    className="inline-flex h-9 items-center gap-1 rounded border border-white/10 px-2.5 text-xs font-bold text-white/55 transition hover:border-white/25 hover:text-white"
-                    title="구간 코멘트로 전환"
+                    onClick={recaptureBarTime}
+                    className={cls(
+                      'inline-flex h-9 items-center gap-1.5 rounded border px-2.5 text-xs font-black tabular-nums transition',
+                      barFrozen
+                        ? 'border-brand/40 bg-brand/10 text-brand'
+                        : 'border-white/10 text-white/55 hover:border-white/25 hover:text-white'
+                    )}
+                    title="현재 재생 위치로 타임코드 다시 잡기"
                   >
-                    <MoveHorizontal size={13} />
-                    구간
+                    <Clock3 size={13} />
+                    {barTimeDisplay}
                   </button>
-                )}
-                {!onThumbnailStage && barRangeOn && (
-                  <span className="inline-flex h-9 items-center gap-1.5 rounded border border-brand/40 bg-brand/10 px-2 text-xs font-bold text-brand">
-                    {formatTimecode(barStart)} →
-                    <button
-                      type="button"
-                      onClick={() => setBarRangeEnd(playerTime())}
-                      className="rounded bg-brand/20 px-1.5 py-0.5 transition hover:bg-brand hover:text-white"
-                    >
-                      {barRangeEnd != null ? formatTimecode(barRangeEnd) : '종료 지정'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBarRangeOn(false);
-                        setBarRangeEnd(null);
-                      }}
-                      aria-label="구간 취소"
-                      className="text-brand/70 hover:text-brand"
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
                 )}
                 <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:flex-1">
                   <input
                     value={barText}
                     onChange={(event) => setBarText(event.target.value)}
+                    onFocus={freezeBarTime}
+                    onBlur={() => {
+                      if (!barText.trim()) setBarFrozen(false);
+                    }}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') submitBar();
                     }}
                     placeholder={
                       onThumbnailStage
-                        ? `${stageThumbnail?.label ?? '썸네일'}에 코멘트...`
-                        : barRangeOn
-                          ? '구간에 대한 코멘트...'
-                          : `${formatTimecode(currentTime)} 시점에 코멘트...`
+                        ? `${stageThumbnail?.label ?? '썸네일'}에 댓글...`
+                        : `${barTimeDisplay} 시점에 댓글 남기기...`
                     }
                     className="h-9 min-w-0 flex-1 rounded border border-white/10 bg-black px-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-brand"
                   />
                   <button
                     type="button"
-                    disabled={busy || !barText.trim() || needName || (barRangeOn && (barRangeEnd == null || barRangeEnd <= barStart))}
+                    disabled={busy || !barText.trim() || needName}
                     onClick={submitBar}
                     className="inline-flex h-9 w-10 flex-shrink-0 items-center justify-center rounded bg-white text-black transition hover:bg-brand hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
-                    aria-label="코멘트 등록"
+                    aria-label="댓글 등록"
                   >
                     <Send size={14} />
                   </button>
@@ -1292,7 +963,7 @@ export default function ReviewRoomWorkspace({
             />
           </div>
 
-          {/* 코멘트 패널 — 모바일: 바텀시트(Figma 모바일 패턴) / 데스크톱: 우측 고정 패널 */}
+          {/* 댓글 패널 — 모바일: 바텀시트(Figma 모바일 패턴) / 데스크톱: 우측 고정 패널 */}
           <aside
             className={cls(
               'fixed inset-x-0 bottom-0 z-40 flex h-[var(--sheet-h)] flex-col rounded-t-2xl border border-b-0 border-white/15 bg-[#0e0e0e] shadow-[0_-10px_40px_rgba(0,0,0,0.7)] transition-[height] duration-300',
@@ -1312,7 +983,7 @@ export default function ReviewRoomWorkspace({
                   setSheetState((prev) => (prev === 'peek' ? 'half' : 'peek'));
                 }
               }}
-              aria-label="코멘트 패널 열기/닫기"
+              aria-label="댓글 패널 열기/닫기"
             >
               <div className="flex justify-center pt-2.5">
                 <span className="h-1 w-10 rounded-full bg-white/25" />
@@ -1320,7 +991,7 @@ export default function ReviewRoomWorkspace({
               <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-1.5">
                 <span className="inline-flex items-center gap-2 text-sm font-black text-white">
                   <MessageSquare size={15} className="text-white/40" />
-                  코멘트 {panelAnnotations.length}
+                  댓글 {panelAnnotations.length}
                   {openCount > 0 && <span className="text-xs font-bold text-brand">미해결 {openCount}</span>}
                 </span>
                 <button
@@ -1382,21 +1053,19 @@ export default function ReviewRoomWorkspace({
             <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain px-3 pb-8 pt-2.5 xl:mt-3 xl:max-h-[calc(100vh-150px)] xl:flex-none xl:overflow-auto xl:px-0 xl:pb-0 xl:pr-1">
               {panelAnnotations.length === 0 ? (
                 <div className="rounded-md border border-white/10 p-8 text-center text-sm leading-relaxed text-white/35">
-                  아직 코멘트가 없습니다.
+                  아직 댓글이 없습니다.
                   <br />
-                  영상 위 &lsquo;화면에 코멘트&rsquo;를 켜고 클릭(핀)·드래그(영역)하거나, 아래 입력창으로 남겨보세요.
+                  영상을 보다가 아래 입력창을 탭하면 그 시점 타임코드로 댓글이 달립니다.
                 </div>
               ) : (
                 panelAnnotations.map((annotation) => {
                   const active = selectedId === annotation.id;
                   const done = isDone(annotation);
-                  const number = numberById.get(annotation.id);
                   const isThumb = annotation.thumbnail_id != null;
                   const thumbLabel = isThumb
                     ? thumbnails.find((t) => t.id === annotation.thumbnail_id)?.label ?? '썸네일'
                     : null;
                   const versionLabel = annotation.video_id ? versionLabelByVideoId.get(annotation.video_id) : null;
-                  const hasCoords = annotation.x_pct != null;
                   return (
                     <article
                       key={annotation.id}
@@ -1464,11 +1133,6 @@ export default function ReviewRoomWorkspace({
                             onClick={() => focusAnnotation(annotation)}
                             className="flex w-full flex-wrap items-center gap-1.5 text-left"
                           >
-                            {hasCoords && number != null && (
-                              <span className="flex h-5 w-5 items-center justify-center rounded-full rounded-bl-none border border-white/40 text-[10px] font-black text-white/80">
-                                {number}
-                              </span>
-                            )}
                             <span className="inline-flex items-center gap-1 rounded bg-white/10 px-1.5 py-0.5 text-[11px] font-bold text-white">
                               {isThumb ? (
                                 <>
