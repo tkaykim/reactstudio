@@ -42,7 +42,6 @@ export async function PATCH(
     .select('id')
     .eq('share_token', token)
     .eq('bu_code', 'REACT')
-    .neq('status', 'archived')
     .maybeSingle();
 
   if (roomError) return NextResponse.json({ error: roomError.message }, { status: 500 });
