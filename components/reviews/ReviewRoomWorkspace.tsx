@@ -157,8 +157,9 @@ export default function ReviewRoomWorkspace({
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
   const [newVersionUrl, setNewVersionUrl] = useState('');
 
-  // 상태 칩 드롭다운 (열려 있는 코멘트 id)
+  // 상태 칩 드롭다운 (열려 있는 코멘트 id + 뷰포트 기준 위치)
   const [statusMenuId, setStatusMenuId] = useState<number | null>(null);
+  const [statusMenuPos, setStatusMenuPos] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
 
   // 모바일 코멘트 바텀시트 (Figma 모바일 패턴): peek(접힘) / half / full
   const [sheetState, setSheetState] = useState<'peek' | 'half' | 'full'>('peek');
@@ -1082,7 +1083,18 @@ export default function ReviewRoomWorkspace({
                           <button
                             type="button"
                             disabled={busy}
-                            onClick={() => setStatusMenuId((prev) => (prev === annotation.id ? null : annotation.id))}
+                            onClick={(event) => {
+                              // 칩 위치 기준 뷰포트 팝오버 좌표 계산 (화면 하단이면 위로 열기)
+                              const rect = event.currentTarget.getBoundingClientRect();
+                              const vw = window.innerWidth;
+                              const vh = window.innerHeight;
+                              const left = Math.min(Math.max(8, rect.left), Math.max(8, vw - 216));
+                              const openUp = rect.bottom > vh * 0.55;
+                              setStatusMenuPos(
+                                openUp ? { left, bottom: vh - rect.top + 4 } : { left, top: rect.bottom + 4 }
+                              );
+                              setStatusMenuId((prev) => (prev === annotation.id ? null : annotation.id));
+                            }}
                             className={cls(
                               'inline-flex h-6 items-center gap-1 rounded-full border px-2 text-[10px] font-black transition hover:brightness-125',
                               statusTone(annotation.status)
@@ -1102,7 +1114,14 @@ export default function ReviewRoomWorkspace({
                                 onClick={() => setStatusMenuId(null)}
                                 aria-label="상태 메뉴 닫기"
                               />
-                              <div className="absolute left-0 top-7 z-50 w-52 rounded-lg border border-white/15 bg-[#141414] p-1 shadow-2xl">
+                              <div
+                                className="fixed z-50 max-h-[60vh] w-52 overflow-y-auto rounded-lg border border-white/15 bg-[#141414] p-1 shadow-2xl"
+                                style={{
+                                  left: statusMenuPos?.left ?? 8,
+                                  top: statusMenuPos?.top,
+                                  bottom: statusMenuPos?.bottom,
+                                }}
+                              >
                                 {REVIEW_ANNOTATION_STATUS_OPTIONS.map((option) => (
                                   <button
                                     key={option.value}
