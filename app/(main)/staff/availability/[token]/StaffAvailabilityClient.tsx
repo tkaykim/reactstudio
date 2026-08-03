@@ -15,7 +15,13 @@ function cls(...values: Array<string | false | null | undefined>) {
 
 type PublicAvailabilityStatus = 'available' | 'unavailable';
 
-export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: StaffAvailabilityPollRow }) {
+export default function StaffAvailabilityClient({
+  initialPoll,
+  quickApplied = null,
+}: {
+  initialPoll: StaffAvailabilityPollRow;
+  quickApplied?: 'available' | 'unavailable' | null;
+}) {
   const [poll, setPoll] = useState(initialPoll);
   const project = staffAvailabilityProjectForKey(poll.project_key);
   const [status, setStatus] = useState<PublicAvailabilityStatus>(
@@ -69,6 +75,21 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
             ))}
           </div>
         </div>
+
+        {quickApplied && (
+          <section className="mb-4 rounded-md border border-brand/40 bg-brand/10 p-4">
+            <p className="text-sm font-black text-white">응답이 접수되었습니다.</p>
+            <p className="mt-1 text-sm leading-relaxed text-white/70">
+              {quickApplied === 'available'
+                ? '가능으로 접수했습니다.'
+                : '불가능으로 접수했습니다.'}
+              <br />
+              따로 더 하실 것은 없습니다.
+              <br />
+              고칠 내용이 있으면 아래에서 바꿔 저장해주세요.
+            </p>
+          </section>
+        )}
 
         <section className="rounded-md border border-white/10 bg-white/[0.035] p-4">
           <p className="text-xs font-bold tracking-[0.14em] text-white/35">{project.label}</p>
@@ -140,12 +161,14 @@ export default function StaffAvailabilityClient({ initialPoll }: { initialPoll: 
               rows={2}
             />
           )}
-          <Field
-            label={project.equipmentLabel}
-            value={equipmentNote}
-            onChange={setEquipmentNote}
-            placeholder={project.equipmentPlaceholder}
-          />
+          {project.showEquipment && (
+            <Field
+              label={project.equipmentLabel}
+              value={equipmentNote}
+              onChange={setEquipmentNote}
+              placeholder={project.equipmentPlaceholder}
+            />
+          )}
           <Field
             label="남길 말"
             value={message}

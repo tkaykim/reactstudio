@@ -25,6 +25,8 @@ export const STAFF_AVAILABILITY_PROJECTS = {
     rateRequiredWhenAvailable: false,
     rateLabel: null,
     ratePlaceholder: null,
+    showEquipment: true,
+    rateBands: null,
     ctaLabel: '댄스학원 영상건 가능 여부 입력하기',
   },
   seoul_event_drone_5h: {
@@ -53,6 +55,8 @@ export const STAFF_AVAILABILITY_PROJECTS = {
     rateRequiredWhenAvailable: true,
     rateLabel: '5시간 기준 스케치 드론 촬영 단가',
     ratePlaceholder: '예: 5시간 기준 600,000원, 부가세 별도 / 포함 여부 등',
+    showEquipment: true,
+    rateBands: null,
     ctaLabel: '행사 드론 촬영 가능 여부 남기기',
   },
   couple_vlog_edit: {
@@ -72,7 +76,7 @@ export const STAFF_AVAILABILITY_PROJECTS = {
     unavailableDescription: '이번 편집건은 어렵지만 스탭풀 등록은 계속할 수 있습니다.',
     equipmentLabel: '편집 툴·자막 작업 환경',
     equipmentPlaceholder: '예: 프리미어 프로 사용, 예능형 자막·모션 자막 작업 가능',
-    messagePlaceholder: '브이로그나 예능 자막 감각을 볼 수 있는 대표 편집물 링크를 남겨주세요.',
+    messagePlaceholder: '더 남기실 내용이 있으면 자유롭게 적어주세요.',
     submitLabel: '응답 저장하기',
     savedSubmitLabel: '응답 수정하기',
     savedAvailableDetail: '커플 브이로그 편집 진행 가능',
@@ -80,7 +84,15 @@ export const STAFF_AVAILABILITY_PROJECTS = {
     preferredTimeWhenUnavailable: '커플 브이로그 편집 진행 불가능',
     rateRequiredWhenAvailable: true,
     rateLabel: '완성본 25~30분 1편 기준 편집 단가',
-    ratePlaceholder: '예: 1편 기준 400,000원, 부가세 별도 / 수정 2회 포함 등',
+    ratePlaceholder: '예: 1편 기준 400,000원, 부가세 별도',
+    showEquipment: false,
+    rateBands: [
+      { key: 'b1', label: '20만원 이하' },
+      { key: 'b2', label: '20~30만원' },
+      { key: 'b3', label: '30~40만원' },
+      { key: 'b4', label: '40~50만원' },
+      { key: 'b5', label: '50만원 이상' },
+    ],
     ctaLabel: '커플 브이로그 편집 가능 여부 남기기',
   },
 } as const;
@@ -143,6 +155,14 @@ export type StaffAvailabilityProjectKey = keyof typeof STAFF_AVAILABILITY_PROJEC
 
 export function staffAvailabilityProjectForKey(key: string | null | undefined) {
   return STAFF_AVAILABILITY_PROJECTS[(key || '') as StaffAvailabilityProjectKey] ?? STAFF_AVAILABILITY_PROJECT;
+}
+
+/** 메일 원클릭 응답에서 넘어온 단가 구간 키를 사람이 읽는 문구로 바꾼다. */
+export function rateBandLabel(projectKey: string | null | undefined, bandKey: string | null | undefined) {
+  if (!bandKey) return null;
+  const bands = staffAvailabilityProjectForKey(projectKey).rateBands;
+  if (!bands) return null;
+  return bands.find((band) => band.key === bandKey)?.label ?? null;
 }
 
 export function availabilityStatusLabel(value: string | null | undefined) {
