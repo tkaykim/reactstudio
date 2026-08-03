@@ -60,7 +60,9 @@ export default async function StaffAvailabilityPage({ params, searchParams }: Pa
           responseStatus === 'available'
             ? project.preferredTimeWhenAvailable
             : project.preferredTimeWhenUnavailable,
-        rate_note: bandLabel ? `${bandLabel} (메일 원클릭 응답)` : poll.rate_note,
+        // 불가능으로 바꾸면 이전 단가 답변이 남아 관리자 화면에 모순되게 보이므로 비운다.
+        rate_note:
+          responseStatus === 'unavailable' ? null : bandLabel ? `${bandLabel} (메일 원클릭 응답)` : poll.rate_note,
         submitted_at: new Date().toISOString(),
         last_viewed_at: new Date().toISOString(),
       })
